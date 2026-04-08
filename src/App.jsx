@@ -522,7 +522,13 @@ export default function App() {
   const generateDistinctiveness = async () => {
     setLoading(true); setLoadMsg("Generando análisis…");
     try {
-      const prompt = `Eres un experto en derecho de marcas. Analiza ÚNICAMENTE el carácter distintivo intrínseco de la denominación para determinar si puede ser registrada como marca. NO compares con marcas previas.
+      const prompt = `Eres un experto en derecho de marcas con profundo conocimiento de las directrices y documentación oficial de las principales oficinas de propiedad industrial (OEPM, EUIPO/OAMI, WIPO, USPTO, UKIPO, INPI, DPMA, y demás oficinas nacionales e internacionales). Analiza EXHAUSTIVAMENTE el carácter distintivo intrínseco de la denominación para determinar si puede ser registrada como marca. NO compares con marcas previas.
+
+INSTRUCCIONES DE CALIDAD:
+- Consulta y aplica las directrices oficiales de examen de la oficina correspondiente (por ejemplo, las Directrices de Examen de la EUIPO, la Guía de Examen de la OEPM, o el Manual de Examen del USPTO según corresponda).
+- Cita la normativa aplicable (Reglamento de Marca de la UE, Ley de Marcas española, Convenio de París, Protocolo de Madrid, etc.).
+- Analiza cada factor de forma detallada y fundamentada, con ejemplos de resoluciones o jurisprudencia cuando sea relevante.
+- Las recomendaciones deben ser concretas, prácticas y basadas en la práctica habitual de la oficina seleccionada.
 
 DENOMINACIÓN: "${dName}"
 Tipo: ${dLogo ? "Mixta (denominativa + figurativa)" : "Denominativa"}
@@ -534,14 +540,14 @@ Responde ÚNICAMENTE con el siguiente JSON, sin texto fuera del JSON:
 {
   "porcentaje": <número entero 0-100>,
   "nivel": "<ALTA|MEDIA|BAJA>",
-  "veredicto": "<1-2 oraciones>",
+  "veredicto": "<2-3 oraciones con análisis detallado>",
   "factores": {
-    "descriptividad":       { "resultado": "<FAVORABLE|NEUTRO|DESFAVORABLE>", "texto": "<1-2 frases>" },
-    "genericidad":          { "resultado": "<FAVORABLE|NEUTRO|DESFAVORABLE>", "texto": "<1-2 frases>" },
-    "caracter_laudatorio":  { "resultado": "<FAVORABLE|NEUTRO|DESFAVORABLE>", "texto": "<1-2 frases>" },
-    "viabilidad_por_clase": { "resultado": "<FAVORABLE|NEUTRO|DESFAVORABLE>", "texto": "<1-2 frases>" }
+    "descriptividad":       { "resultado": "<FAVORABLE|NEUTRO|DESFAVORABLE>", "texto": "<2-4 frases con fundamentación jurídica>" },
+    "genericidad":          { "resultado": "<FAVORABLE|NEUTRO|DESFAVORABLE>", "texto": "<2-4 frases con fundamentación jurídica>" },
+    "caracter_laudatorio":  { "resultado": "<FAVORABLE|NEUTRO|DESFAVORABLE>", "texto": "<2-4 frases con fundamentación jurídica>" },
+    "viabilidad_por_clase": { "resultado": "<FAVORABLE|NEUTRO|DESFAVORABLE>", "texto": "<2-4 frases analizando cada clase solicitada>" }
   },
-  "recomendaciones": ["<rec 1>", "<rec 2>"]
+  "recomendaciones": ["<rec 1 concreta y detallada>", "<rec 2 concreta y detallada>", "<rec 3 si procede>"]
 }`;
       const txt = await callClaude(
         "Eres un experto en derecho de marcas. Responde ÚNICAMENTE con el objeto JSON solicitado, sin texto antes ni después, sin bloques markdown.",
@@ -594,8 +600,8 @@ ${oppsTxt}`;
         : "";
 
       const mainPrompt = oRole==="solicited"
-        ? `Eres experto en derecho de marcas. Redacta un ESCRITO DE CONTESTACIÓN A OPOSICIÓN profesional conforme a ${oJur}.${styleSection}${useRequestSection}\n\n${ctx}\n\nEstructura: I–VI en números romanos. Mínimo 800 palabras. **Negrita** términos jurídicos, *cursiva* denominaciones, > citas. Jurisprudencia real con números. Redacta el escrito completo:`
-        : `Eres experto en derecho de marcas. Redacta un ESCRITO DE OPOSICIÓN DE MARCA profesional conforme a ${oJur}.${styleSection}${useRequestSection}\n\n${ctx}\n\nEstructura: I–VII en números romanos. Mínimo 800 palabras. **Negrita** términos jurídicos, *cursiva* denominaciones, > citas. Jurisprudencia real con números. Redacta el escrito completo:`;
+        ? `Eres experto en derecho de marcas con profundo conocimiento de las directrices y documentación oficial de las principales oficinas de propiedad industrial (OEPM, EUIPO, WIPO, USPTO, etc.). Redacta un ESCRITO DE CONTESTACIÓN A OPOSICIÓN profesional conforme a ${oJur}.${styleSection}${useRequestSection}\n\nINSTRUCCIONES DE CALIDAD:\n- Consulta y aplica las directrices oficiales de examen de la oficina correspondiente.\n- Cita normativa aplicable y jurisprudencia real con números de resolución/sentencia.\n- Argumenta de forma exhaustiva cada punto, analizando similitud fonética, visual, conceptual y de productos/servicios.\n- El resultado debe ser un escrito completo, listo para presentar, con máximo rigor técnico.\n\n${ctx}\n\nEstructura: I–VI en números romanos. Mínimo 1200 palabras. **Negrita** términos jurídicos, *cursiva* denominaciones, > citas. Redacta el escrito completo:`
+        : `Eres experto en derecho de marcas con profundo conocimiento de las directrices y documentación oficial de las principales oficinas de propiedad industrial (OEPM, EUIPO, WIPO, USPTO, etc.). Redacta un ESCRITO DE OPOSICIÓN DE MARCA profesional conforme a ${oJur}.${styleSection}${useRequestSection}\n\nINSTRUCCIONES DE CALIDAD:\n- Consulta y aplica las directrices oficiales de examen de la oficina correspondiente.\n- Cita normativa aplicable y jurisprudencia real con números de resolución/sentencia.\n- Argumenta de forma exhaustiva cada punto, analizando similitud fonética, visual, conceptual y de productos/servicios.\n- El resultado debe ser un escrito completo, listo para presentar, con máximo rigor técnico.\n\n${ctx}\n\nEstructura: I–VII en números romanos. Mínimo 1200 palabras. **Negrita** términos jurídicos, *cursiva* denominaciones, > citas. Redacta el escrito completo:`;
 
       let userContent;
       if (styleReady && styleIsPdf && styleB64) {
@@ -608,7 +614,7 @@ ${oppsTxt}`;
       }
 
       const txt = await callClaude(
-        "Eres un experto en derecho de marcas. Redactas escritos legales en español con máxima precisión técnica. Estructuras con apartados en números romanos. Usas **negrita** para términos jurídicos, *cursiva* para nombres de marcas, > para citas literales. Nunca usas ### ni ##.",
+        "Eres un experto en derecho de marcas con profundo conocimiento de las directrices oficiales de examen de la OEPM, EUIPO, WIPO, USPTO y demás oficinas nacionales e internacionales. Redactas escritos legales en español con máxima precisión técnica y rigor jurídico. Consultas y aplicas la normativa y jurisprudencia más relevante. Estructuras con apartados en números romanos. Usas **negrita** para términos jurídicos, *cursiva* para nombres de marcas, > para citas literales. Nunca usas ### ni ##.",
         userContent
       );
       setResult(txt);
