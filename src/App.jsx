@@ -403,6 +403,7 @@ export default function App() {
   const [oRole,  setORole]  = useState("");
   const [oName,  setOName]  = useState("");
   const [oExp,   setOExp]   = useState("");
+  const [oFilingDate, setOFilingDate] = useState("");
   const [oOffice,setOOffice]= useState("");
   const [oClasses,setOClasses]=useState([]);
   const [oProds, setOProds] = useState("");
@@ -559,9 +560,10 @@ ${oRole==="solicited"?"Marca Oponente":"Solicitud Impugnada"} ${i+1}:
 - Productos: ${op.products||"—"}`;
       }).join("\n");
 
+      const filingRef = oRole==="solicited" && oFilingDate ? new Date(oFilingDate) : now;
       const hasOldMarks = oRole==="solicited" && opps.some(op => {
         if(!op.regDate) return false;
-        return (now - new Date(op.regDate)) / (365.25*24*60*60*1000) >= 5;
+        return (filingRef - new Date(op.regDate)) / (365.25*24*60*60*1000) >= 5;
       });
       const useRequestSection = hasOldMarks
         ? "\n\nIMPORTANTE — PRUEBA DE USO: Una o más de las marcas oponentes tienen 5 o más años de antigüedad desde su registro. Como SOLICITANTE que defiende su solicitud, DEBES incluir un apartado específico solicitando la PRUEBA DE USO EFECTIVO de dichas marcas oponentes conforme al artículo 39 de la Ley 17/2001 de Marcas (España) o al artículo 47.2 del Reglamento (UE) 2017/1001 (EUIPO), según la jurisdicción. Argumenta que la falta de uso efectivo y real durante 5 años consecutivos desde el registro puede dar lugar a la caducidad de la marca oponente, y solicita formalmente que el oponente aporte pruebas de uso efectivo en el territorio y para los productos/servicios reivindicados. Cita jurisprudencia relevante sobre prueba de uso (ej. TJUE C-40/01 Ansul, C-259/02 La Mer Technology)."
@@ -569,7 +571,7 @@ ${oRole==="solicited"?"Marca Oponente":"Solicitud Impugnada"} ${i+1}:
 
       const ctx = `ROL: ${oRole==="solicited"?"SOLICITANTE — defiende su solicitud":"OPONENTE — presenta oposición"}
 ${oRole==="solicited"?"MARCA A DEFENDER:":"MARCA ANTERIOR BASE:"}
-- Denominación: "${oName}"  Expediente: ${oExp||"—"}
+- Denominación: "${oName}"  Expediente: ${oExp||"—"}${oRole==="solicited"&&oFilingDate?`\n- Fecha de presentación de la solicitud: ${oFilingDate}`:""}
 - Clases: ${oClasses.length?oClasses.map(c=>`Clase ${c}`).join(", "):"—"}
 - Productos/Servicios: ${oProds||"—"}
 - Oficina: ${oOfficeLabel} / Jurisdicción: ${oJur}
@@ -655,7 +657,7 @@ ${oppsTxt}`;
     if(svc==="distinctiveness"){
       localStorage.setItem("traidemark_form", JSON.stringify({svc,dName,dOffice,dClasses,dProds,dLogo,dEmail,dLawyer}));
     } else if(svc==="opposition"){
-      localStorage.setItem("traidemark_form", JSON.stringify({svc,oRole,oName,oExp,oOffice,oClasses,oProds,oLogo,opps,oEmail,oLawyer,oLang,styleText}));
+      localStorage.setItem("traidemark_form", JSON.stringify({svc,oRole,oName,oExp,oFilingDate,oOffice,oClasses,oProds,oLogo,opps,oEmail,oLawyer,oLang,styleText}));
     }
   };
 
@@ -720,6 +722,7 @@ ${oppsTxt}`;
             if(saved.oRole) setORole(saved.oRole);
             if(saved.oName) setOName(saved.oName);
             if(saved.oExp) setOExp(saved.oExp);
+            if(saved.oFilingDate) setOFilingDate(saved.oFilingDate);
             if(saved.oOffice) setOOffice(saved.oOffice);
             if(saved.oClasses) setOClasses(saved.oClasses);
             if(saved.oProds) setOProds(saved.oProds);
@@ -1134,6 +1137,12 @@ ${oppsTxt}`;
                         <div className="fg"><label className="flabel">Denominación <span>*</span></label><input className="finput" placeholder="ej. NOVA CAFÉ" value={oName} onChange={e=>setOName(e.target.value)}/></div>
                         <div className="fg"><label className="flabel">N.º expediente / registro</label><input className="finput" placeholder="ej. M4123456" value={oExp} onChange={e=>setOExp(e.target.value)}/></div>
                       </div>
+                      {oRole==="solicited"&&(
+                        <div className="frow">
+                          <div className="fg"><label className="flabel">Fecha de presentación de su solicitud</label><input className="finput" type="date" value={oFilingDate} onChange={e=>setOFilingDate(e.target.value)}/></div>
+                          <div className="fg"/>
+                        </div>
+                      )}
                       <div className="frow">
                         <div className="fg"><label className="flabel">Oficina <span>*</span></label>
                           <select className="fselect" value={oOffice} onChange={e=>setOOffice(e.target.value)}>
