@@ -1021,7 +1021,7 @@ ${oppsTxt}`;
                   <div className={`upsell ${dLawyer?"sel":""}`} onClick={()=>setDLawyer(v=>!v)}>
                     <div className="upsell-top">
                       <div className="upsell-chk">{dLawyer?"✓":""}</div>
-                      <div><div className="upsell-title">Revisión por abogado experto en marcas</div><div className="upsell-desc">Un abogado revisará el análisis y emitirá su opinión profesional en 48 horas hábiles.</div><div className="upsell-price">+ 50 € — Total: 100 €</div></div>
+                      <div><div className="upsell-title">Revisión por abogado experto en marcas</div><div className="upsell-desc">Un abogado revisará el análisis y emitirá su opinión profesional en 48 horas hábiles.</div><div className="upsell-price">+ 50 € — Total: {dTotal} €</div></div>
                     </div>
                     <div className="upsell-extras">
                       <div className="upsell-extra"><span className="ue-ck">✓</span>Opinión jurídica por letrado especializado</div>
@@ -1293,7 +1293,7 @@ ${oppsTxt}`;
                   <div className={`upsell ${oLawyer?"sel":""}`} onClick={()=>setOLawyer(v=>!v)}>
                     <div className="upsell-top">
                       <div className="upsell-chk">{oLawyer?"✓":""}</div>
-                      <div><div className="upsell-title">Revisión y validación por un abogado experto en marcas</div><div className="upsell-desc">Un abogado revisará el escrito y le remitirá la versión final validada en 48 horas hábiles.</div><div className="upsell-price">+ 50 € — Total: 120 €</div></div>
+                      <div><div className="upsell-title">Revisión y validación por un abogado experto en marcas</div><div className="upsell-desc">Un abogado revisará el escrito y le remitirá la versión final validada en 48 horas hábiles.</div><div className="upsell-price">+ 50 € — Total: {oTotal} €</div></div>
                     </div>
                     <div className="upsell-extras">
                       <div className="upsell-extra"><span className="ue-ck">✓</span>Revisión jurídica completa por letrado</div>

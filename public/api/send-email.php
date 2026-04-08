@@ -69,10 +69,13 @@ $body .= "Content-Transfer-Encoding: 8bit\r\n\r\n";
 $body .= $htmlBody . "\r\n\r\n";
 $body .= "--$boundary--\r\n";
 
-$sent = mail($to, "=?UTF-8?B?" . base64_encode($subject) . "?=", $body, $headers);
+$encodedSubject = "=?UTF-8?B?" . base64_encode($subject) . "?=";
+error_log("trAIdemark email: sending to=$to subject=$subject isAdmin=" . ($isAdmin ? "yes" : "no"));
+$sent = mail($to, $encodedSubject, $body, $headers);
+error_log("trAIdemark email: mail() returned " . ($sent ? "true" : "false") . " to=$to");
 
 if ($sent) {
-    echo json_encode(['success' => true]);
+    echo json_encode(['success' => true, 'to' => $to, 'isAdmin' => $isAdmin]);
 } else {
     http_response_code(500);
     echo json_encode(['error' => 'Failed to send email. Server mail configuration may be required.']);
