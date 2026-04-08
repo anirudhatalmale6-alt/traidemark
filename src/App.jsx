@@ -272,8 +272,8 @@ const css = `
   .info-panel-note{font-size:12px;color:var(--tm);margin-top:5px;line-height:1.65;}
   .info-panel-code{font-weight:600;color:var(--orange);}
   .secure{display:flex;align-items:center;justify-content:center;gap:6px;font-size:11px;color:var(--tl);margin-top:13px;}
-  .goog-te-gadget{font-size:0!important;}.goog-te-gadget .goog-te-combo{font-size:12px;font-family:'Inter',sans-serif;border:1px solid var(--border);border-radius:var(--r);padding:5px 8px;background:var(--bg);color:var(--t2);cursor:pointer;outline:none;}
-  .goog-te-banner-frame{display:none!important;}body{top:0!important;}
+  .goog-te-gadget{font-size:0!important;}.goog-te-gadget>span{display:none!important;}.goog-te-gadget img{display:none!important;}.goog-te-gadget .goog-te-combo{font-size:12px;font-family:'Inter',sans-serif;border:1px solid var(--border);border-radius:var(--r);padding:5px 8px;background:var(--bg);color:var(--t2);cursor:pointer;outline:none;}
+  .goog-te-banner-frame{display:none!important;}body{top:0!important;}.skiptranslate{display:none!important;}body{top:0!important;}#google_translate_element .skiptranslate{display:inline-block!important;}
   .billing-wrap{background:var(--bg-soft);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;margin-bottom:14px;}
   .billing-toggle{display:flex;align-items:center;gap:9px;cursor:pointer;}
   .toggle-box{width:17px;height:17px;border:1.5px solid var(--border-s);border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all var(--tr);font-size:10px;font-weight:700;color:transparent;background:var(--bg);}
@@ -422,7 +422,7 @@ export default function App() {
   const [bName,setBName]=useState(""); const [bNif,setBNif]=useState("");
   const [bAddr,setBAddr]=useState(""); const [bCity,setBCity]=useState("");
   const [bCP,setBCP]=useState(""); const [bCountry,setBCountry]=useState("España");
-  const dTotal = 50 + (dLawyer ? 50 : 0);
+  const dTotal = 30 + (dLawyer ? 50 : 0);
 
   /* ── OPPOSITION state ── */
   const [oStep,  setOStep]  = useState(1);
@@ -880,7 +880,7 @@ ${oppsTxt}`;
                     </div>
                     <div className="svc-desc">Análisis del carácter distintivo intrínseco de su denominación: si puede ser registrada como marca según los criterios de la legislación aplicable, con independencia de registros anteriores. Incluye puntuación de registrabilidad (0–100 %), evaluación por factores y recomendaciones.</div>
                   </div>
-                  <div className="svc-footer"><span className="svc-price">Desde 50 €</span><span className="svc-arrow">→</span></div>
+                  <div className="svc-footer"><span className="svc-price">Desde 30 €</span><span className="svc-arrow">→</span></div>
                 </div>
                 <div className="svc-card" onClick={()=>{if(!discAccepted){setShowDisc(true);return;}setService("opposition");}}>
                   <div className="svc-icon">⚖️</div>
@@ -963,7 +963,7 @@ ${oppsTxt}`;
                     </tbody>
                   </table>
                   <div className="price-box">
-                    <div><div className="price-num"><span className="price-cur">€</span>50</div><div className="price-sub">Análisis de distintividad · Inmediato</div></div>
+                    <div><div className="price-num"><span className="price-cur">€</span>30</div><div className="price-sub">Análisis de distintividad · Inmediato</div></div>
                     <div className="price-feats">
                       <div className="price-feat"><span className="pf-ck">✓</span>Puntuación de registrabilidad intrínseca (0–100 %)</div>
                       <div className="price-feat"><span className="pf-ck">✓</span>Evaluación de obstáculos absolutos</div>
@@ -1033,7 +1033,7 @@ ${oppsTxt}`;
                 }
                 <div className="btn-row">
                   <button className="btn-secondary" onClick={goHome}>Inicio</button>
-                  <button className="btn-primary" onClick={()=>{const out=disData?JSON.stringify(disData,null,2):result||"";const b=new Blob([out],{type:"text/plain;charset=utf-8"});const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;a.download=`Analisis_Distintividad_${dName.replace(/\s/g,"_")}.txt`;a.click();URL.revokeObjectURL(u);}}>Descargar análisis</button>
+                  <button className="btn-primary" onClick={()=>{const d=disData;if(!d)return;const html=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><style>body{font-family:Calibri,sans-serif;font-size:12pt;line-height:1.6;margin:40px;}h1{font-size:18pt;color:#1a365d;}h2{font-size:14pt;color:#2a4365;border-bottom:1px solid #ddd;padding-bottom:4px;}table{border-collapse:collapse;width:100%;margin:12px 0;}td,th{border:1px solid #ccc;padding:8px 12px;text-align:left;}th{background:#f0f4f8;font-weight:bold;}.fav{color:#2f855a;}.neu{color:#c07820;}.desf{color:#c53030;}</style></head><body><h1>Análisis de Distintividad — ${dName}</h1><p><strong>Puntuación:</strong> ${d.porcentaje}% — <strong>Nivel:</strong> ${d.nivel} REGISTRABILIDAD</p><p><strong>Veredicto:</strong> ${d.veredicto}</p><h2>Factores analizados</h2><table><tr><th>Factor</th><th>Resultado</th><th>Análisis</th></tr>${Object.entries(d.factores||{}).map(([k,v])=>`<tr><td>${k.replace(/_/g," ").replace(/^\w/,c=>c.toUpperCase())}</td><td class="${v.resultado==="FAVORABLE"?"fav":v.resultado==="NEUTRO"?"neu":"desf"}">${v.resultado}</td><td>${v.texto}</td></tr>`).join("")}</table><h2>Recomendaciones</h2><ul>${(d.recomendaciones||[]).map(r=>`<li>${r}</li>`).join("")}</ul></body></html>`;const b=new Blob([html],{type:"application/msword;charset=utf-8"});const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;a.download=`Analisis_Distintividad_${dName.replace(/\s/g,"_")}.doc`;a.click();URL.revokeObjectURL(u);}}>Descargar análisis</button>
                 </div>
               </>
             )}
@@ -1287,7 +1287,7 @@ ${oppsTxt}`;
                 </div>
                 <div className="btn-row">
                   <button className="btn-secondary" onClick={goHome}>Inicio</button>
-                  <button className="btn-primary" onClick={()=>{const b=new Blob([result||""],{type:"text/plain;charset=utf-8"});const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;a.download=`${oRole==="solicited"?"Contestacion_Oposicion":"Escrito_Oposicion"}_${oName.replace(/\s/g,"_")}.txt`;a.click();URL.revokeObjectURL(u);}}>Descargar escrito</button>
+                  <button className="btn-primary" onClick={()=>{const txt=result||"";const htmlBody=txt.split("\n").map(line=>{if(!line.trim())return"<br/>";let h=line.replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/\*(.+?)\*/g,"<em>$1</em>");if(line.startsWith(">"))return`<blockquote style="border-left:3px solid #999;padding:6px 12px;margin:10px 0;color:#555;font-style:italic;">${h.replace(/^>\s?/,"")}</blockquote>`;if(/^(I|II|III|IV|V|VI|VII|VIII|IX|X)\.\s/.test(line))return`<h2 style="font-size:14pt;color:#2a4365;margin-top:18px;">${h}</h2>`;return`<p>${h}</p>`;}).join("");const html=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><style>body{font-family:Calibri,sans-serif;font-size:12pt;line-height:1.8;margin:40px;}h2{border-bottom:1px solid #ddd;padding-bottom:4px;}strong{color:#1a365d;}blockquote{background:#f7f7f7;border-radius:4px;}</style></head><body>${htmlBody}</body></html>`;const b=new Blob([html],{type:"application/msword;charset=utf-8"});const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;a.download=`${oRole==="solicited"?"Contestacion_Oposicion":"Escrito_Oposicion"}_${oName.replace(/\s/g,"_")}.doc`;a.click();URL.revokeObjectURL(u);}}>Descargar escrito</button>
                 </div>
               </>
             )}
