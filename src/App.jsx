@@ -6,32 +6,6 @@ const LOGO_URI = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQIAdgB2AAD/2wBDAAMCAgM
 const OFFICES = [
   { code:"OEPM",    label:"OEPM — Oficina Española de Patentes y Marcas (España)" },
   { code:"EUIPO",   label:"EUIPO — Oficina de Propiedad Intelectual de la UE" },
-  { code:"WIPO",    label:"OMPI/WIPO — Sistema de Madrid (Internacional)" },
-  { code:"USPTO",   label:"USPTO — United States Patent and Trademark Office (EE.UU.)" },
-  { code:"IPO-UK",  label:"IPO — Intellectual Property Office (Reino Unido)" },
-  { code:"INPI-FR", label:"INPI — Institut National de la Propriété Industrielle (Francia)" },
-  { code:"DPMA",    label:"DPMA — Deutsches Patent- und Markenamt (Alemania)" },
-  { code:"INPI-BR", label:"INPI — Instituto Nacional da Propriedade Industrial (Brasil)" },
-  { code:"CNIPA",   label:"CNIPA — China National Intellectual Property Administration (China)" },
-  { code:"JPO",     label:"JPO — Japan Patent Office (Japón)" },
-  { code:"KIPO",    label:"KIPO — Korean Intellectual Property Office (Corea del Sur)" },
-  { code:"CIPO",    label:"CIPO — Canadian Intellectual Property Office (Canadá)" },
-  { code:"IP-AU",   label:"IP Australia — Australian Intellectual Property Office" },
-  { code:"IMPI",    label:"IMPI — Instituto Mexicano de la Propiedad Industrial (México)" },
-  { code:"INPI-AR", label:"INPI — Instituto Nacional de la Propiedad Industrial (Argentina)" },
-  { code:"SPTO",    label:"SPTO — Singapore Patent & Trade Marks Office (Singapur)" },
-  { code:"IPONZ",   label:"IPONZ — Intellectual Property Office of New Zealand" },
-  { code:"CGPDTM",  label:"O/o CGPDTM — Trade Marks Registry (India)" },
-  { code:"ROSPATENT",label:"Rospatent — Servicio Federal de Propiedad Intelectual (Rusia)" },
-  { code:"TIPO",    label:"TIPO — Taiwan Intellectual Property Office (Taiwán)" },
-  { code:"INAPI",   label:"INAPI — Instituto Nacional de Propiedad Industrial (Chile)" },
-  { code:"SIC-CO",  label:"SIC — Superintendencia de Industria y Comercio (Colombia)" },
-  { code:"INDECOPI",label:"INDECOPI — Oficina de Signos Distintivos (Perú)" },
-  { code:"OAPI",    label:"OAPI — Organisation Africaine de la Propriété Intellectuelle" },
-  { code:"ARIPO",   label:"ARIPO — African Regional Intellectual Property Organization" },
-  { code:"EAPO",    label:"EAPO — Eurasian Patent Organization" },
-  { code:"GCC-PO",  label:"GCC Patent Office — Consejo de Cooperación del Golfo" },
-  { code:"BIPO",    label:"BIPO — Bahrain Intellectual Property Office (Baréin)" },
 ];
 
 const CLASSES = Array.from({ length: 45 }, (_, i) => i + 1);
@@ -437,6 +411,7 @@ export default function App() {
   const [oEmail, setOEmail] = useState("");
   const [oBilling,setOBilling]=useState(false);
   const [oLawyer,setOLawyer]=useState(false);
+  const [oLang,setOLang]=useState("es");
   const [oPay,   setOPay]   = useState("card");
   const [ob_Name,setObName]=useState(""); const [ob_Nif,setObNif]=useState("");
   const [ob_Addr,setObAddr]=useState(""); const [ob_City,setObCity]=useState("");
@@ -579,17 +554,17 @@ Responde ÚNICAMENTE con el siguiente JSON, sin texto fuera del JSON:
         return `
 ${oRole==="solicited"?"Marca Oponente":"Solicitud Impugnada"} ${i+1}:
 - Denominación: ${op.name||"(no especificada)"}  Expediente: ${op.expediente||"—"}
-- Fecha de registro: ${op.regDate||"—"}${yearsOld!==null?` (antigüedad: ${yearsOld} años)`:""}
+- ${oRole==="opponent"?"Fecha de presentación de la solicitud":"Fecha de registro"}: ${op.regDate||"—"}${yearsOld!==null?` (antigüedad: ${yearsOld} años)`:""}
 - Clases: ${op.classes.length?op.classes.map(c=>`Clase ${c}`).join(", "):"—"}
 - Productos: ${op.products||"—"}`;
       }).join("\n");
 
-      const hasOldMarks = opps.some(op => {
+      const hasOldMarks = oRole==="opponent" && opps.some(op => {
         if(!op.regDate) return false;
         return (now - new Date(op.regDate)) / (365.25*24*60*60*1000) >= 5;
       });
       const useRequestSection = hasOldMarks
-        ? "\n\nIMPORTANTE — PRUEBA DE USO: Una o más marcas oponentes tienen 5 o más años de antigüedad desde su registro. DEBES incluir un apartado específico solicitando la PRUEBA DE USO EFECTIVO de dichas marcas conforme al artículo 39 de la Ley de Marcas (o equivalente según la jurisdicción). Argumenta que la falta de uso efectivo y real durante 5 años consecutivos puede dar lugar a la caducidad de la marca, y solicita formalmente que el oponente aporte pruebas de uso."
+        ? "\n\nIMPORTANTE — PRUEBA DE USO: Una o más de las marcas del solicitante (cuya solicitud impugnamos) fueron presentadas hace 5 o más años. Como OPONENTE, DEBES incluir un apartado específico solicitando la PRUEBA DE USO EFECTIVO de nuestra marca anterior conforme al artículo 39 de la Ley de Marcas (España) o al artículo 47.2 del Reglamento (UE) 2017/1001 (EUIPO), según la jurisdicción. Argumenta que el solicitante puede exigir la prueba de uso si nuestra marca lleva registrada más de 5 años, y prepara la defensa anticipándose a dicha solicitud, o bien solicita la prueba de uso de las marcas del solicitante si procede. Cita jurisprudencia relevante sobre prueba de uso."
         : "";
 
       const ctx = `ROL: ${oRole==="solicited"?"SOLICITANTE — defiende su solicitud":"OPONENTE — presenta oposición"}
@@ -607,9 +582,14 @@ ${oppsTxt}`;
           : `\n\nIMITACIÓN DE ESTILO: Analiza este documento modelo del cliente y reproduce fielmente su estilo de redacción (tono, estructura, formalidad, forma de argumentar):\n\n--- DOCUMENTO MODELO ---\n${styleText.slice(0,4000)}${styleText.length>4000?"\n[...]":""}\n--- FIN DOCUMENTO MODELO ---`
         : "";
 
+      const langMap = {es:"español",en:"inglés (English)",fr:"francés (Français)"};
+      const langInstr = oLang!=="es" ? `\n\nIDIOMA: Redacta el escrito COMPLETO en ${langMap[oLang]}. Toda la argumentación, encabezados, citas y conclusiones deben estar en ${langMap[oLang]}.` : "";
+
+      const qualityBlock = `\n\nINSTRUCCIONES DE CALIDAD:\n- Consulta y aplica las directrices oficiales de examen de la oficina correspondiente (Directrices de Examen OEPM o Directrices EUIPO según proceda).\n- Cita normativa aplicable con artículos concretos (Ley 17/2001 de Marcas, Reglamento (UE) 2017/1001, etc.).\n- Incluye jurisprudencia REAL y relevante: sentencias del Tribunal General de la UE (TGUE), del TJUE, resoluciones de la Sala de Recurso de la EUIPO, resoluciones de la OEPM, con números de asunto y fecha (ej. T-XXX/XX, R XXXX/X-X).\n- Realiza un análisis DETALLADO de la comparación entre las marcas: similitud fonética (descomposición silábica, acentuación, ritmo), similitud visual (longitud, letras comunes, estructura), similitud conceptual (significado evocado, asociaciones), y similitud de productos/servicios (criterios de afinidad, canales de distribución, público destinatario).\n- Aplica el principio de interdependencia de factores (canon global de apreciación del riesgo de confusión).\n- El resultado debe ser un escrito completo, profesional, listo para presentar, con máximo rigor técnico.`;
+
       const mainPrompt = oRole==="solicited"
-        ? `Eres experto en derecho de marcas con profundo conocimiento de las directrices y documentación oficial de las principales oficinas de propiedad industrial (OEPM, EUIPO, WIPO, USPTO, etc.). Redacta un ESCRITO DE CONTESTACIÓN A OPOSICIÓN profesional conforme a ${oJur}.${styleSection}${useRequestSection}\n\nINSTRUCCIONES DE CALIDAD:\n- Consulta y aplica las directrices oficiales de examen de la oficina correspondiente.\n- Cita normativa aplicable y jurisprudencia real con números de resolución/sentencia.\n- Argumenta de forma exhaustiva cada punto, analizando similitud fonética, visual, conceptual y de productos/servicios.\n- El resultado debe ser un escrito completo, listo para presentar, con máximo rigor técnico.\n\n${ctx}\n\nEstructura: I–VI en números romanos. Mínimo 1200 palabras. **Negrita** términos jurídicos, *cursiva* denominaciones, > citas. Redacta el escrito completo:`
-        : `Eres experto en derecho de marcas con profundo conocimiento de las directrices y documentación oficial de las principales oficinas de propiedad industrial (OEPM, EUIPO, WIPO, USPTO, etc.). Redacta un ESCRITO DE OPOSICIÓN DE MARCA profesional conforme a ${oJur}.${styleSection}${useRequestSection}\n\nINSTRUCCIONES DE CALIDAD:\n- Consulta y aplica las directrices oficiales de examen de la oficina correspondiente.\n- Cita normativa aplicable y jurisprudencia real con números de resolución/sentencia.\n- Argumenta de forma exhaustiva cada punto, analizando similitud fonética, visual, conceptual y de productos/servicios.\n- El resultado debe ser un escrito completo, listo para presentar, con máximo rigor técnico.\n\n${ctx}\n\nEstructura: I–VII en números romanos. Mínimo 1200 palabras. **Negrita** términos jurídicos, *cursiva* denominaciones, > citas. Redacta el escrito completo:`;
+        ? `Eres experto en derecho de marcas con profundo conocimiento de las directrices y documentación oficial de la OEPM y la EUIPO. Redacta un ESCRITO DE CONTESTACIÓN A OPOSICIÓN profesional conforme a la legislación ${oJur}.${styleSection}${useRequestSection}${langInstr}${qualityBlock}\n\n${ctx}\n\nEstructura: I–VI en números romanos. Mínimo 1200 palabras. **Negrita** términos jurídicos, *cursiva* denominaciones, > citas. Redacta el escrito completo:`
+        : `Eres experto en derecho de marcas con profundo conocimiento de las directrices y documentación oficial de la OEPM y la EUIPO. Redacta un ESCRITO DE OPOSICIÓN DE MARCA profesional conforme a la legislación ${oJur}.${styleSection}${useRequestSection}${langInstr}${qualityBlock}\n\n${ctx}\n\nEstructura: I–VII en números romanos. Mínimo 1200 palabras. **Negrita** términos jurídicos, *cursiva* denominaciones, > citas. Redacta el escrito completo:`;
 
       let userContent;
       if (styleReady && styleIsPdf && styleB64) {
@@ -622,7 +602,7 @@ ${oppsTxt}`;
       }
 
       const txt = await callClaude(
-        "Eres un experto en derecho de marcas con profundo conocimiento de las directrices oficiales de examen de la OEPM, EUIPO, WIPO, USPTO y demás oficinas nacionales e internacionales. Redactas escritos legales en español con máxima precisión técnica y rigor jurídico. Consultas y aplicas la normativa y jurisprudencia más relevante. Estructuras con apartados en números romanos. Usas **negrita** para términos jurídicos, *cursiva* para nombres de marcas, > para citas literales. Nunca usas ### ni ##.",
+        `Eres un experto en derecho de marcas con profundo conocimiento de las directrices oficiales de examen de la OEPM y la EUIPO. Redactas escritos legales ${oLang==="es"?"en español":oLang==="en"?"in English":"en français"} con máxima precisión técnica y rigor jurídico. Consultas y aplicas la normativa y jurisprudencia más relevante, citando resoluciones reales con números de asunto. Estructuras con apartados en números romanos. Usas **negrita** para términos jurídicos, *cursiva* para nombres de marcas, > para citas literales. Nunca usas ### ni ##.`,
         userContent
       );
       setResult(txt);
@@ -675,7 +655,7 @@ ${oppsTxt}`;
     if(svc==="distinctiveness"){
       localStorage.setItem("traidemark_form", JSON.stringify({svc,dName,dOffice,dClasses,dProds,dLogo,dEmail,dLawyer}));
     } else if(svc==="opposition"){
-      localStorage.setItem("traidemark_form", JSON.stringify({svc,oRole,oName,oExp,oOffice,oClasses,oProds,oLogo,opps,oEmail,oLawyer,styleText}));
+      localStorage.setItem("traidemark_form", JSON.stringify({svc,oRole,oName,oExp,oOffice,oClasses,oProds,oLogo,opps,oEmail,oLawyer,oLang,styleText}));
     }
   };
 
@@ -747,6 +727,7 @@ ${oppsTxt}`;
             if(saved.opps) setOpps(saved.opps);
             if(saved.oEmail) setOEmail(saved.oEmail);
             if(saved.oLawyer!==undefined) setOLawyer(saved.oLawyer);
+            if(saved.oLang) setOLang(saved.oLang);
             setService("opposition"); setOStep(4);
             setLoading(false);
             setTimeout(()=>generateOpposition(),200);
@@ -907,7 +888,7 @@ ${oppsTxt}`;
               <img src={LOGO_URI} alt="trAIdemark" className="hero-logo"/>
               <div className="hero-pill">✦ Propiedad intelectual asistida por IA</div>
               <h1 className="hero-title">Informes y escritos para sus <em>procedimientos de marcas</em></h1>
-              <p className="hero-sub">Analice la distintividad intrínseca de su denominación antes de solicitar el registro, o genere escritos de oposición y defensa con jurisprudencia real — adaptados a su propia forma de redactar.</p>
+              <p className="hero-sub">Analice la distintividad intrínseca de su denominación antes de solicitar el registro ante la OEPM (España) o la EUIPO (Unión Europea), o genere escritos de oposición y defensa con jurisprudencia real — adaptados a su propia forma de redactar.</p>
               <div className="hero-rule"/>
               <p className="hero-note">Los documentos generados son orientativos y no sustituyen el asesoramiento de un profesional habilitado en propiedad industrial.</p>
             </div>
@@ -935,7 +916,7 @@ ${oppsTxt}`;
                     <div className="svc-tags" style={{marginTop:"8px",marginBottom:"10px"}}>
                       <span className="svc-tag">Solicitante</span>
                       <span className="svc-tag">Oponente</span>
-                      <span className="svc-tag">+28 oficinas</span>
+                      <span className="svc-tag">OEPM · EUIPO</span>
                       <span className="svc-tag">Estilo propio</span>
                     </div>
                     <div className="svc-desc">Escrito de contestación a una oposición recibida o escrito de oposición frente a una nueva solicitud. Opcionalmente, cargue un documento Word o PDF propio para que el escrito imite su estilo y forma de redacción habitual.</div>
@@ -1153,11 +1134,18 @@ ${oppsTxt}`;
                         <div className="fg"><label className="flabel">Denominación <span>*</span></label><input className="finput" placeholder="ej. NOVA CAFÉ" value={oName} onChange={e=>setOName(e.target.value)}/></div>
                         <div className="fg"><label className="flabel">N.º expediente / registro</label><input className="finput" placeholder="ej. M4123456" value={oExp} onChange={e=>setOExp(e.target.value)}/></div>
                       </div>
-                      <div className="frow one">
+                      <div className="frow">
                         <div className="fg"><label className="flabel">Oficina <span>*</span></label>
                           <select className="fselect" value={oOffice} onChange={e=>setOOffice(e.target.value)}>
                             <option value="">— Seleccione la oficina —</option>
                             {OFFICES.map(o=><option key={o.code} value={o.code}>{o.label}</option>)}
+                          </select>
+                        </div>
+                        <div className="fg"><label className="flabel">Idioma del escrito</label>
+                          <select className="fselect" value={oLang} onChange={e=>setOLang(e.target.value)}>
+                            <option value="es">Español</option>
+                            <option value="en">English</option>
+                            <option value="fr">Français</option>
                           </select>
                         </div>
                       </div>
@@ -1238,7 +1226,7 @@ ${oppsTxt}`;
                         <div className="fg"><label className="flabel">N.º registro / expediente</label><input className="finput" placeholder="ej. 3456789" value={op.expediente} onChange={e=>updOpp(op.id,"expediente",e.target.value)}/></div>
                       </div>
                       <div className="frow">
-                        <div className="fg"><label className="flabel">Fecha de registro</label><input className="finput" type="date" value={op.regDate} onChange={e=>updOpp(op.id,"regDate",e.target.value)}/></div>
+                        <div className="fg"><label className="flabel">{oRole==="opponent"?"Fecha de presentación de la solicitud":"Fecha de registro"}</label><input className="finput" type="date" value={op.regDate} onChange={e=>updOpp(op.id,"regDate",e.target.value)}/></div>
                         <div className="fg"/>
                       </div>
                       <div className="frow">
