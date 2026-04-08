@@ -796,9 +796,9 @@ ${oppsTxt}`;
   const PayBlock = ({method,setMethod,bizRef}) => (
     <>
       <div className="pmethods">
-        {[{id:"card",icon:"💳",label:"Tarjeta"},{id:"bizum",icon:"Bz",label:"Bizum",mono:true},{id:"paypal",icon:"PP",label:"PayPal",pp:true}].map(m=>(
+        {[{id:"card",icon:"💳",label:"Tarjeta"}].map(m=>(
           <div key={m.id} className={`pmethod ${method===m.id?"sel":""}`} onClick={()=>setMethod(m.id)}>
-            <div className="pmethod-icon" style={m.mono?{fontFamily:"sans-serif",fontWeight:700,color:"#00A49A",fontSize:"17px"}:m.pp?{fontFamily:"sans-serif",fontWeight:700,color:"#003087",fontSize:"17px"}:{}}>{m.icon}</div>
+            <div className="pmethod-icon">{m.icon}</div>
             <div className="pmethod-lbl">{m.label}</div>
           </div>
         ))}
@@ -806,8 +806,6 @@ ${oppsTxt}`;
       {method==="card"&&(
         <div className="info-panel"><div style={{fontSize:"13px",color:"var(--t2)",lineHeight:"1.7"}}>Al hacer clic en «Confirmar pago», será redirigido a la pasarela segura de <strong>Stripe</strong> para completar el pago con tarjeta. Sus datos bancarios nunca pasan por nuestro servidor.</div></div>
       )}
-      {method==="bizum"&&<div className="info-panel"><div style={{fontSize:"12px",color:"var(--tm)",marginBottom:"7px"}}>Envíe el importe al número</div><div className="info-panel-main">+34 600 000 000</div><div className="info-panel-note">Concepto: <span className="info-panel-code">{bizRef}</span><br/>Una vez pagado, haga clic en «Confirmar pago».</div></div>}
-      {method==="paypal"&&<div className="info-panel"><div style={{fontSize:"12px",color:"var(--tm)",marginBottom:"7px"}}>Pago a</div><div className="info-panel-main" style={{fontSize:"20px"}}>pagos@traidemark.com</div><div className="info-panel-note">Tras confirmación, haga clic en «Confirmar pago».</div></div>}
       <div className="secure">🔒 Pago seguro · SSL/TLS · PSD2</div>
     </>
   );
