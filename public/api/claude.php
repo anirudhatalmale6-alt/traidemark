@@ -1,4 +1,6 @@
 <?php
+set_time_limit(180);
+ini_set('max_execution_time', 180);
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
@@ -44,7 +46,7 @@ if (empty($systemPrompt) || empty($userContent)) {
 
 $payload = json_encode([
     'model' => 'claude-sonnet-4-20250514',
-    'max_tokens' => 8000,
+    'max_tokens' => 10000,
     'system' => $systemPrompt,
     'messages' => [['role' => 'user', 'content' => $userContent]]
 ]);
@@ -68,14 +70,17 @@ $curlError = curl_error($ch);
 curl_close($ch);
 
 if ($curlError) {
+    error_log("trAIdemark claude.php: curl error: $curlError");
     http_response_code(500);
     echo json_encode(['error' => 'Error connecting to Claude API: ' . $curlError]);
     exit;
 }
 
 $data = json_decode($response, true);
+error_log("trAIdemark claude.php: HTTP $httpCode, response length: " . strlen($response));
 
 if (isset($data['error'])) {
+    error_log("trAIdemark claude.php: API error: " . json_encode($data['error']));
     http_response_code($httpCode);
     echo json_encode(['error' => $data['error']['message'] ?? 'Claude API error']);
     exit;

@@ -428,6 +428,7 @@ export default function App() {
   const [styleProcessing,setStyleProcessing]= useState(false);
   const [styleReady,     setStyleReady]     = useState(false);
   const styleRef = useRef(null);
+  const savedFormRef = useRef(null);
 
   /* ── PAYMENT CARD state ── */
   const [cNum,setCNum]=useState(""); const [cExp,setCExp]=useState("");
@@ -498,19 +499,30 @@ export default function App() {
   const generateDistinctiveness = async () => {
     setLoading(true); setLoadMsg("Generando análisis…");
     try {
-      const prompt = `Eres un experto en derecho de marcas con profundo conocimiento de las directrices y documentación oficial de las principales oficinas de propiedad industrial (OEPM, EUIPO/OAMI, WIPO, USPTO, UKIPO, INPI, DPMA, y demás oficinas nacionales e internacionales). Analiza EXHAUSTIVAMENTE el carácter distintivo intrínseco de la denominación para determinar si puede ser registrada como marca. NO compares con marcas previas.
+      const s = savedFormRef.current || {};
+      const _dName = s.dName || dName;
+      const _dOffice = s.dOffice || dOffice;
+      const _dClasses = s.dClasses || dClasses;
+      const _dProds = s.dProds || dProds;
+      const _dLogo = s.dLogo || dLogo;
+      const _dEmail = s.dEmail || dEmail;
+      const _dLawyer = s.dLawyer!==undefined ? s.dLawyer : dLawyer;
+      const _dOfficeLabel = OFFICES.find(o=>o.code===_dOffice)?.label||_dOffice;
+      const _dJur = JURS[_dOffice]||JURS.default;
+      savedFormRef.current = null;
+      const prompt = `Eres un experto en derecho de marcas con profundo conocimiento de las directrices y documentación oficial de las principales oficinas de propiedad industrial (OEPM, EUIPO/OAMI). Analiza EXHAUSTIVAMENTE el carácter distintivo intrínseco de la denominación para determinar si puede ser registrada como marca. NO compares con marcas previas.
 
 INSTRUCCIONES DE CALIDAD:
-- Consulta y aplica las directrices oficiales de examen de la oficina correspondiente (por ejemplo, las Directrices de Examen de la EUIPO, la Guía de Examen de la OEPM, o el Manual de Examen del USPTO según corresponda).
-- Cita la normativa aplicable (Reglamento de Marca de la UE, Ley de Marcas española, Convenio de París, Protocolo de Madrid, etc.).
+- Consulta y aplica las directrices oficiales de examen de la oficina correspondiente (Directrices de Examen de la EUIPO o la Guía de Examen de la OEPM según corresponda).
+- Cita la normativa aplicable (Reglamento de Marca de la UE, Ley de Marcas española, etc.).
 - Analiza cada factor de forma detallada y fundamentada, con ejemplos de resoluciones o jurisprudencia cuando sea relevante.
 - Las recomendaciones deben ser concretas, prácticas y basadas en la práctica habitual de la oficina seleccionada.
 
-DENOMINACIÓN: "${dName}"
-Tipo: ${dLogo ? "Mixta (denominativa + figurativa)" : "Denominativa"}
-Clases solicitadas: ${dClasses.length ? dClasses.map(c=>`Clase ${c}`).join(", ") : "No especificadas"}
-Productos/Servicios: ${dProds || "No especificados"}
-Oficina: ${dOfficeLabel} — Jurisdicción: ${dJur}
+DENOMINACIÓN: "${_dName}"
+Tipo: ${_dLogo ? "Mixta (denominativa + figurativa)" : "Denominativa"}
+Clases solicitadas: ${_dClasses.length ? _dClasses.map(c=>`Clase ${c}`).join(", ") : "No especificadas"}
+Productos/Servicios: ${_dProds || "No especificados"}
+Oficina: ${_dOfficeLabel} — Jurisdicción: ${_dJur}
 
 Responde ÚNICAMENTE con el siguiente JSON, sin texto fuera del JSON:
 {
@@ -532,12 +544,12 @@ Responde ÚNICAMENTE con el siguiente JSON, sin texto fuera del JSON:
       try {
         const parsed = JSON.parse(txt.replace(/```json|```/g,"").trim());
         setDisData(parsed);
-        const emailHtml = `<p><strong>Denominación:</strong> ${dName}</p><p><strong>Puntuación:</strong> ${parsed.porcentaje}% — <strong>Nivel:</strong> ${parsed.nivel}</p><p><strong>Veredicto:</strong> ${parsed.veredicto}</p><h3>Factores</h3><table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse;width:100%;"><tr><th>Factor</th><th>Resultado</th><th>Análisis</th></tr>${Object.entries(parsed.factores||{}).map(([k,v])=>`<tr><td>${k.replace(/_/g," ")}</td><td>${v.resultado}</td><td>${v.texto}</td></tr>`).join("")}</table><h3>Recomendaciones</h3><ul>${(parsed.recomendaciones||[]).map(r=>`<li>${r}</li>`).join("")}</ul>`;
+        const emailHtml = `<p><strong>Denominación:</strong> ${_dName}</p><p><strong>Puntuación:</strong> ${parsed.porcentaje}% — <strong>Nivel:</strong> ${parsed.nivel}</p><p><strong>Veredicto:</strong> ${parsed.veredicto}</p><h3>Factores</h3><table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse;width:100%;"><tr><th>Factor</th><th>Resultado</th><th>Análisis</th></tr>${Object.entries(parsed.factores||{}).map(([k,v])=>`<tr><td>${k.replace(/_/g," ")}</td><td>${v.resultado}</td><td>${v.texto}</td></tr>`).join("")}</table><h3>Recomendaciones</h3><ul>${(parsed.recomendaciones||[]).map(r=>`<li>${r}</li>`).join("")}</ul>`;
         // Send email: if lawyer review, only send to admin; otherwise send to client
-        if(dLawyer && dEmail){
-          sendAdminNotification("distinctiveness", dName, dEmail, emailHtml);
-        } else if(dEmail){
-          sendResultEmail(dEmail, "distinctiveness", dName, emailHtml);
+        if(_dLawyer && _dEmail){
+          sendAdminNotification("distinctiveness", _dName, _dEmail, emailHtml);
+        } else if(_dEmail){
+          sendResultEmail(_dEmail, "distinctiveness", _dName, emailHtml);
         }
       } catch { setDisData(null); }
       setResult(txt);
@@ -549,19 +561,34 @@ Responde ÚNICAMENTE con el siguiente JSON, sin texto fuera del JSON:
   const generateOpposition = async () => {
     setLoading(true); setLoadMsg("Generando escrito…");
     try {
+      const s = savedFormRef.current || {};
+      const _oRole = s.oRole || oRole;
+      const _oName = s.oName || oName;
+      const _oExp = s.oExp || oExp;
+      const _oFilingDate = s.oFilingDate || oFilingDate;
+      const _oOffice = s.oOffice || oOffice;
+      const _oClasses = s.oClasses || oClasses;
+      const _oProds = s.oProds || oProds;
+      const _opps = s.opps || opps;
+      const _oEmail = s.oEmail || oEmail;
+      const _oLawyer = s.oLawyer!==undefined ? s.oLawyer : oLawyer;
+      const _oLang = s.oLang || oLang;
+      const _oOfficeLabel = OFFICES.find(o=>o.code===_oOffice)?.label||_oOffice;
+      const _oJur = JURS[_oOffice]||JURS.default;
+      savedFormRef.current = null;
       const now = new Date();
-      const oppsTxt = opps.map((op,i)=>{
+      const oppsTxt = _opps.map((op,i)=>{
         const yearsOld = op.regDate ? Math.floor((now - new Date(op.regDate)) / (365.25*24*60*60*1000)) : null;
         return `
-${oRole==="solicited"?"Marca Oponente":"Solicitud Impugnada"} ${i+1}:
+${_oRole==="solicited"?"Marca Oponente":"Solicitud Impugnada"} ${i+1}:
 - Denominación: ${op.name||"(no especificada)"}  Expediente: ${op.expediente||"—"}
-- ${oRole==="solicited"?"Fecha de registro":"Fecha de presentación"}: ${op.regDate||"—"}${yearsOld!==null?` (antigüedad: ${yearsOld} años)`:""}
+- ${_oRole==="solicited"?"Fecha de registro":"Fecha de presentación"}: ${op.regDate||"—"}${yearsOld!==null?` (antigüedad: ${yearsOld} años)`:""}
 - Clases: ${op.classes.length?op.classes.map(c=>`Clase ${c}`).join(", "):"—"}
 - Productos: ${op.products||"—"}`;
       }).join("\n");
 
-      const filingRef = oRole==="solicited" && oFilingDate ? new Date(oFilingDate) : now;
-      const hasOldMarks = oRole==="solicited" && opps.some(op => {
+      const filingRef = _oRole==="solicited" && _oFilingDate ? new Date(_oFilingDate) : now;
+      const hasOldMarks = _oRole==="solicited" && _opps.some(op => {
         if(!op.regDate) return false;
         return (filingRef - new Date(op.regDate)) / (365.25*24*60*60*1000) >= 5;
       });
@@ -569,13 +596,13 @@ ${oRole==="solicited"?"Marca Oponente":"Solicitud Impugnada"} ${i+1}:
         ? "\n\nIMPORTANTE — PRUEBA DE USO: Una o más de las marcas oponentes tienen 5 o más años de antigüedad desde su registro. Como SOLICITANTE que defiende su solicitud, DEBES incluir un apartado específico solicitando la PRUEBA DE USO EFECTIVO de dichas marcas oponentes conforme al artículo 39 de la Ley 17/2001 de Marcas (España) o al artículo 47.2 del Reglamento (UE) 2017/1001 (EUIPO), según la jurisdicción. Argumenta que la falta de uso efectivo y real durante 5 años consecutivos desde el registro puede dar lugar a la caducidad de la marca oponente, y solicita formalmente que el oponente aporte pruebas de uso efectivo en el territorio y para los productos/servicios reivindicados. Cita jurisprudencia relevante sobre prueba de uso (ej. TJUE C-40/01 Ansul, C-259/02 La Mer Technology)."
         : "";
 
-      const ctx = `ROL: ${oRole==="solicited"?"SOLICITANTE — defiende su solicitud":"OPONENTE — presenta oposición"}
-${oRole==="solicited"?"MARCA A DEFENDER:":"MARCA ANTERIOR BASE:"}
-- Denominación: "${oName}"  Expediente: ${oExp||"—"}${oRole==="solicited"&&oFilingDate?`\n- Fecha de presentación de la solicitud: ${oFilingDate}`:""}
-- Clases: ${oClasses.length?oClasses.map(c=>`Clase ${c}`).join(", "):"—"}
-- Productos/Servicios: ${oProds||"—"}
-- Oficina: ${oOfficeLabel} / Jurisdicción: ${oJur}
-${oRole==="solicited"?"MARCAS OPONENTES:":"SOLICITUDES A IMPUGNAR:"}
+      const ctx = `ROL: ${_oRole==="solicited"?"SOLICITANTE — defiende su solicitud":"OPONENTE — presenta oposición"}
+${_oRole==="solicited"?"MARCA A DEFENDER:":"MARCA ANTERIOR BASE:"}
+- Denominación: "${_oName}"  Expediente: ${_oExp||"—"}${_oRole==="solicited"&&_oFilingDate?`\n- Fecha de presentación de la solicitud: ${_oFilingDate}`:""}
+- Clases: ${_oClasses.length?_oClasses.map(c=>`Clase ${c}`).join(", "):"—"}
+- Productos/Servicios: ${_oProds||"—"}
+- Oficina: ${_oOfficeLabel} / Jurisdicción: ${_oJur}
+${_oRole==="solicited"?"MARCAS OPONENTES:":"SOLICITUDES A IMPUGNAR:"}
 ${oppsTxt}`;
 
       const styleSection = styleReady
@@ -585,13 +612,13 @@ ${oppsTxt}`;
         : "";
 
       const langMap = {es:"español",en:"inglés (English)",fr:"francés (Français)"};
-      const langInstr = oLang!=="es" ? `\n\nIDIOMA: Redacta el escrito COMPLETO en ${langMap[oLang]}. Toda la argumentación, encabezados, citas y conclusiones deben estar en ${langMap[oLang]}.` : "";
+      const langInstr = _oLang!=="es" ? `\n\nIDIOMA: Redacta el escrito COMPLETO en ${langMap[_oLang]}. Toda la argumentación, encabezados, citas y conclusiones deben estar en ${langMap[_oLang]}.` : "";
 
       const qualityBlock = `\n\nINSTRUCCIONES DE CALIDAD:\n- FUNDAMENTAL: Utiliza TODOS los datos proporcionados (denominaciones, expedientes, clases, productos, fechas). El escrito debe referirse SIEMPRE a las marcas concretas facilitadas, con sus nombres exactos, números de expediente y clases. NO generes un escrito genérico o plantilla.\n- Consulta y aplica las directrices oficiales de examen de la oficina correspondiente (Directrices de Examen OEPM o Directrices EUIPO según proceda).\n- Cita normativa aplicable con artículos concretos (Ley 17/2001 de Marcas, Reglamento (UE) 2017/1001, etc.).\n- Incluye jurisprudencia REAL y relevante: sentencias del Tribunal General de la UE (TGUE), del TJUE, resoluciones de la Sala de Recurso de la EUIPO, resoluciones de la OEPM, con números de asunto y fecha (ej. T-XXX/XX, R XXXX/X-X).\n- Realiza un análisis DETALLADO de la comparación entre las marcas concretas: similitud fonética (descomposición silábica, acentuación, ritmo), similitud visual (longitud, letras comunes, estructura), similitud conceptual (significado evocado, asociaciones), y similitud de productos/servicios (criterios de afinidad, canales de distribución, público destinatario).\n- Aplica el principio de interdependencia de factores (canon global de apreciación del riesgo de confusión).\n- El resultado debe ser un escrito completo, profesional, listo para presentar, con máximo rigor técnico, que haga referencia CONCRETA a las marcas y datos proporcionados.`;
 
-      const mainPrompt = oRole==="solicited"
-        ? `Eres experto en derecho de marcas con profundo conocimiento de las directrices y documentación oficial de la OEPM y la EUIPO. Redacta un ESCRITO DE CONTESTACIÓN A OPOSICIÓN profesional conforme a la legislación ${oJur}.${styleSection}${useRequestSection}${langInstr}${qualityBlock}\n\n${ctx}\n\nEstructura: I–VI en números romanos. Mínimo 1200 palabras. **Negrita** términos jurídicos, *cursiva* denominaciones, > citas. Redacta el escrito completo:`
-        : `Eres experto en derecho de marcas con profundo conocimiento de las directrices y documentación oficial de la OEPM y la EUIPO. Redacta un ESCRITO DE OPOSICIÓN DE MARCA profesional conforme a la legislación ${oJur}.${styleSection}${useRequestSection}${langInstr}${qualityBlock}\n\n${ctx}\n\nEstructura: I–VII en números romanos. Mínimo 1200 palabras. **Negrita** términos jurídicos, *cursiva* denominaciones, > citas. Redacta el escrito completo:`;
+      const mainPrompt = _oRole==="solicited"
+        ? `Eres experto en derecho de marcas con profundo conocimiento de las directrices y documentación oficial de la OEPM y la EUIPO. Redacta un ESCRITO DE CONTESTACIÓN A OPOSICIÓN profesional conforme a la legislación ${_oJur}.${styleSection}${useRequestSection}${langInstr}${qualityBlock}\n\n${ctx}\n\nEstructura: I–VI en números romanos. Mínimo 1200 palabras. **Negrita** términos jurídicos, *cursiva* denominaciones, > citas. Redacta el escrito completo:`
+        : `Eres experto en derecho de marcas con profundo conocimiento de las directrices y documentación oficial de la OEPM y la EUIPO. Redacta un ESCRITO DE OPOSICIÓN DE MARCA profesional conforme a la legislación ${_oJur}.${styleSection}${useRequestSection}${langInstr}${qualityBlock}\n\n${ctx}\n\nEstructura: I–VII en números romanos. Mínimo 1200 palabras. **Negrita** términos jurídicos, *cursiva* denominaciones, > citas. Redacta el escrito completo:`;
 
       let userContent;
       if (styleReady && styleIsPdf && styleB64) {
@@ -604,12 +631,12 @@ ${oppsTxt}`;
       }
 
       const txt = await callClaude(
-        `Eres un experto en derecho de marcas con profundo conocimiento de las directrices oficiales de examen de la OEPM y la EUIPO. Redactas escritos legales ${oLang==="es"?"en español":oLang==="en"?"in English":"en français"} con máxima precisión técnica y rigor jurídico. Consultas y aplicas la normativa y jurisprudencia más relevante, citando resoluciones reales con números de asunto. Estructuras con apartados en números romanos. Usas **negrita** para términos jurídicos, *cursiva* para nombres de marcas, > para citas literales. Nunca usas ### ni ##.`,
+        `Eres un experto en derecho de marcas con profundo conocimiento de las directrices oficiales de examen de la OEPM y la EUIPO. Redactas escritos legales ${_oLang==="es"?"en español":_oLang==="en"?"in English":"en français"} con máxima precisión técnica y rigor jurídico. Consultas y aplicas la normativa y jurisprudencia más relevante, citando resoluciones reales con números de asunto. Estructuras con apartados en números romanos. Usas **negrita** para términos jurídicos, *cursiva* para nombres de marcas, > para citas literales. Nunca usas ### ni ##.`,
         userContent
       );
       setResult(txt);
       // Send email with formatted result
-      if(oEmail && txt && !txt.startsWith("⚠️")){
+      if(_oEmail && txt && !txt.startsWith("⚠️")){
         const emailHtml = txt.split("\n").map(line=>{
           if(!line.trim()) return "<br/>";
           let h=line.replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/\*(.+?)\*/g,"<em>$1</em>");
@@ -617,10 +644,10 @@ ${oppsTxt}`;
           if(/^(I|II|III|IV|V|VI|VII|VIII|IX|X)\.\s/.test(line)) return `<h3>${h}</h3>`;
           return `<p>${h}</p>`;
         }).join("");
-        if(oLawyer){
-          sendAdminNotification("opposition", oName, oEmail, emailHtml);
+        if(_oLawyer){
+          sendAdminNotification("opposition", _oName, _oEmail, emailHtml);
         } else {
-          sendResultEmail(oEmail, "opposition", oName, emailHtml);
+          sendResultEmail(_oEmail, "opposition", _oName, emailHtml);
         }
       }
     } catch { setResult("⚠️ Error de conexión. Por favor, inténtelo de nuevo."); }
@@ -715,6 +742,7 @@ ${oppsTxt}`;
             if(saved.dLogo) setDLogo(saved.dLogo);
             if(saved.dEmail) setDEmail(saved.dEmail);
             if(saved.dLawyer!==undefined) setDLawyer(saved.dLawyer);
+            savedFormRef.current = saved;
             setService("distinctiveness"); setDStep(3);
             setLoading(false);
             setTimeout(()=>generateDistinctiveness(),200);
@@ -731,6 +759,7 @@ ${oppsTxt}`;
             if(saved.oEmail) setOEmail(saved.oEmail);
             if(saved.oLawyer!==undefined) setOLawyer(saved.oLawyer);
             if(saved.oLang) setOLang(saved.oLang);
+            savedFormRef.current = saved;
             setService("opposition"); setOStep(4);
             setLoading(false);
             setTimeout(()=>generateOpposition(),200);
