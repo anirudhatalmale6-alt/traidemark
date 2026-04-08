@@ -273,7 +273,7 @@ const css = `
   .info-panel-code{font-weight:600;color:var(--orange);}
   .secure{display:flex;align-items:center;justify-content:center;gap:6px;font-size:11px;color:var(--tl);margin-top:13px;}
   .goog-te-gadget{font-size:0!important;}.goog-te-gadget>span{display:none!important;}.goog-te-gadget img{display:none!important;}.goog-te-gadget .goog-te-combo{font-size:12px;font-family:'Inter',sans-serif;border:1px solid var(--border);border-radius:var(--r);padding:5px 8px;background:var(--bg);color:var(--t2);cursor:pointer;outline:none;}
-  .goog-te-banner-frame{display:none!important;}body{top:0!important;}.skiptranslate{display:none!important;}body{top:0!important;}#google_translate_element .skiptranslate{display:inline-block!important;}
+  .goog-te-banner-frame{display:none!important;}body{top:0!important;}.skiptranslate:not(#google_translate_element .skiptranslate){display:none!important;}body{top:0!important;}#google_translate_element .skiptranslate{display:inline-block!important;font-size:0!important;}
   .billing-wrap{background:var(--bg-soft);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;margin-bottom:14px;}
   .billing-toggle{display:flex;align-items:center;gap:9px;cursor:pointer;}
   .toggle-box{width:17px;height:17px;border:1.5px solid var(--border-s);border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all var(--tr);font-size:10px;font-weight:700;color:transparent;background:var(--bg);}
@@ -389,7 +389,7 @@ export default function App() {
         new window.google.translate.TranslateElement({
           pageLanguage:"es",
           includedLanguages:"es,en,fr,de,pt,it",
-          layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE,
+          layout: window.google.translate.TranslateElement.InlineLayout.HORIZONTAL,
           autoDisplay:false
         },"google_translate_element");
       };
@@ -1021,7 +1021,7 @@ ${oppsTxt}`;
                   <div className={`upsell ${dLawyer?"sel":""}`} onClick={()=>setDLawyer(v=>!v)}>
                     <div className="upsell-top">
                       <div className="upsell-chk">{dLawyer?"✓":""}</div>
-                      <div><div className="upsell-title">Revisión por abogado experto en marcas</div><div className="upsell-desc">Un abogado revisará el análisis y emitirá su opinión profesional en 48 horas hábiles.</div><div className="upsell-price">+ 50 € — Total: {dTotal} €</div></div>
+                      <div><div className="upsell-title">Revisión por abogado experto en marcas</div><div className="upsell-desc">Un abogado revisará el análisis y emitirá su opinión profesional en 48 horas hábiles.</div><div className="upsell-price">+ 50 € — Total: {30 + 50} €</div></div>
                     </div>
                     <div className="upsell-extras">
                       <div className="upsell-extra"><span className="ue-ck">✓</span>Opinión jurídica por letrado especializado</div>
@@ -1293,7 +1293,7 @@ ${oppsTxt}`;
                   <div className={`upsell ${oLawyer?"sel":""}`} onClick={()=>setOLawyer(v=>!v)}>
                     <div className="upsell-top">
                       <div className="upsell-chk">{oLawyer?"✓":""}</div>
-                      <div><div className="upsell-title">Revisión y validación por un abogado experto en marcas</div><div className="upsell-desc">Un abogado revisará el escrito y le remitirá la versión final validada en 48 horas hábiles.</div><div className="upsell-price">+ 50 € — Total: {oTotal} €</div></div>
+                      <div><div className="upsell-title">Revisión y validación por un abogado experto en marcas</div><div className="upsell-desc">Un abogado revisará el escrito y le remitirá la versión final validada en 48 horas hábiles.</div><div className="upsell-price">+ 50 € — Total: {70 + 50} €</div></div>
                     </div>
                     <div className="upsell-extras">
                       <div className="upsell-extra"><span className="ue-ck">✓</span>Revisión jurídica completa por letrado</div>
