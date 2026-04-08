@@ -1,0 +1,15 @@
+RewriteEngine On
+
+# Protect config file
+<Files "config.json">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Route /api/claude to the PHP handler
+RewriteRule ^api/claude$ api/claude.php [L,QSA]
+
+# SPA: route all non-file requests to index.html
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.html [L]
