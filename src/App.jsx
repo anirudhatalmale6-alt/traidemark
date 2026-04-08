@@ -556,13 +556,12 @@ Responde ÚNICAMENTE con el siguiente JSON, sin texto fuera del JSON:
       try {
         const parsed = JSON.parse(txt.replace(/```json|```/g,"").trim());
         setDisData(parsed);
-        // Send email with formatted result
-        if(dEmail){
-          const emailHtml = `<p><strong>Denominación:</strong> ${dName}</p><p><strong>Puntuación:</strong> ${parsed.porcentaje}% — <strong>Nivel:</strong> ${parsed.nivel}</p><p><strong>Veredicto:</strong> ${parsed.veredicto}</p><h3>Factores</h3><table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse;width:100%;"><tr><th>Factor</th><th>Resultado</th><th>Análisis</th></tr>${Object.entries(parsed.factores||{}).map(([k,v])=>`<tr><td>${k.replace(/_/g," ")}</td><td>${v.resultado}</td><td>${v.texto}</td></tr>`).join("")}</table><h3>Recomendaciones</h3><ul>${(parsed.recomendaciones||[]).map(r=>`<li>${r}</li>`).join("")}</ul>`;
-          sendResultEmail(dEmail, "distinctiveness", dName, emailHtml);
-        }
+        const emailHtml = `<p><strong>Denominación:</strong> ${dName}</p><p><strong>Puntuación:</strong> ${parsed.porcentaje}% — <strong>Nivel:</strong> ${parsed.nivel}</p><p><strong>Veredicto:</strong> ${parsed.veredicto}</p><h3>Factores</h3><table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse;width:100%;"><tr><th>Factor</th><th>Resultado</th><th>Análisis</th></tr>${Object.entries(parsed.factores||{}).map(([k,v])=>`<tr><td>${k.replace(/_/g," ")}</td><td>${v.resultado}</td><td>${v.texto}</td></tr>`).join("")}</table><h3>Recomendaciones</h3><ul>${(parsed.recomendaciones||[]).map(r=>`<li>${r}</li>`).join("")}</ul>`;
+        // Send email: if lawyer review, only send to admin; otherwise send to client
         if(dLawyer && dEmail){
           sendAdminNotification("distinctiveness", dName, dEmail, emailHtml);
+        } else if(dEmail){
+          sendResultEmail(dEmail, "distinctiveness", dName, emailHtml);
         }
       } catch { setDisData(null); }
       setResult(txt);
@@ -636,10 +635,11 @@ ${oppsTxt}`;
           if(/^(I|II|III|IV|V|VI|VII|VIII|IX|X)\.\s/.test(line)) return `<h3>${h}</h3>`;
           return `<p>${h}</p>`;
         }).join("");
-        sendResultEmail(oEmail, "opposition", oName, emailHtml);
-      }
-      if(oLawyer && oEmail && txt && !txt.startsWith("⚠️")){
-        sendAdminNotification("opposition", oName, oEmail, emailHtml);
+        if(oLawyer){
+          sendAdminNotification("opposition", oName, oEmail, emailHtml);
+        } else {
+          sendResultEmail(oEmail, "opposition", oName, emailHtml);
+        }
       }
     } catch { setResult("⚠️ Error de conexión. Por favor, inténtelo de nuevo."); }
     finally { setLoading(false); }
@@ -1053,34 +1053,54 @@ ${oppsTxt}`;
 
             {dStep===3&&(
               <>
-                {dEmail&&<div className="alert-ok">✓ El resultado se enviará a <strong>{dEmail}</strong></div>}
-                <div className="res-hdr">
-                  <div className="res-title">Análisis de distintividad — <em style={{color:"var(--orange)",fontStyle:"italic"}}>{dName}</em></div>
-                  <div className="res-meta">{OFFICES.find(o=>o.code===dOffice)?.label.split("—")[0].trim()}{dClasses.length?` · Clases ${dClasses.join(", ")}`:""}</div>
-                  <div className="res-badges">
-                    <span className="badge badge-dis">🔍 Distintividad intrínseca</span>
-                    {dLawyer&&<span className="badge badge-rev">⚖ Revisión legal contratada</span>}
-                    {dEmail&&<span className="badge badge-email">✉ {dEmail}</span>}
-                  </div>
-                </div>
-                {dLawyer&&<div className="notice-purple"><div className="notice-purple-title">⚖ Revisión por abogado contratada</div><div className="notice-purple-desc">Recibirá la opinión jurídica en máximo 48 horas hábiles en {dEmail}.</div></div>}
-                {loading
-                  ? <div className="res-body"><p style={{color:"var(--tm)",fontStyle:"italic"}}>Generando el análisis…</p></div>
-                  : <>
-                      <DisResult data={disData}/>
-                      {disData?.recomendaciones?.length>0&&(
-                        <div className="dis-recs">
-                          <div className="dis-recs-title">Recomendaciones</div>
-                          {disData.recomendaciones.map((r,i)=><div className="dis-rec-item" key={i}><div className="dis-rec-dot"/>{r}</div>)}
-                        </div>
-                      )}
-                      {!disData&&result&&<div className="res-body">{fmt(result)}</div>}
-                    </>
-                }
-                <div className="btn-row">
-                  <button className="btn-secondary" onClick={goHome}>Inicio</button>
-                  <button className="btn-primary" onClick={()=>{const d=disData;if(!d)return;const html=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><style>body{font-family:Calibri,sans-serif;font-size:12pt;line-height:1.6;margin:40px;}h1{font-size:18pt;color:#1a365d;}h2{font-size:14pt;color:#2a4365;border-bottom:1px solid #ddd;padding-bottom:4px;}table{border-collapse:collapse;width:100%;margin:12px 0;}td,th{border:1px solid #ccc;padding:8px 12px;text-align:left;}th{background:#f0f4f8;font-weight:bold;}.fav{color:#2f855a;}.neu{color:#c07820;}.desf{color:#c53030;}</style></head><body><h1>Análisis de Distintividad — ${dName}</h1><p><strong>Puntuación:</strong> ${d.porcentaje}% — <strong>Nivel:</strong> ${d.nivel} REGISTRABILIDAD</p><p><strong>Veredicto:</strong> ${d.veredicto}</p><h2>Factores analizados</h2><table><tr><th>Factor</th><th>Resultado</th><th>Análisis</th></tr>${Object.entries(d.factores||{}).map(([k,v])=>`<tr><td>${k.replace(/_/g," ").replace(/^\w/,c=>c.toUpperCase())}</td><td class="${v.resultado==="FAVORABLE"?"fav":v.resultado==="NEUTRO"?"neu":"desf"}">${v.resultado}</td><td>${v.texto}</td></tr>`).join("")}</table><h2>Recomendaciones</h2><ul>${(d.recomendaciones||[]).map(r=>`<li>${r}</li>`).join("")}</ul></body></html>`;const b=new Blob([html],{type:"application/msword;charset=utf-8"});const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;a.download=`Analisis_Distintividad_${dName.replace(/\s/g,"_")}.doc`;a.click();URL.revokeObjectURL(u);}}>Descargar análisis</button>
-                </div>
+                {dLawyer?(
+                  <>
+                    <div style={{textAlign:"center",padding:"60px 20px"}}>
+                      <div style={{fontSize:"48px",marginBottom:"20px"}}>⚖</div>
+                      <div style={{fontSize:"22px",fontWeight:600,color:"var(--t1)",marginBottom:"12px",fontFamily:"'Playfair Display',serif"}}>Análisis bajo revisión de un experto</div>
+                      <div style={{fontSize:"15px",color:"var(--t2)",lineHeight:"1.7",maxWidth:"480px",margin:"0 auto"}}>
+                        Un abogado especialista en propiedad industrial revisará y ampliará el análisis de distintividad de <strong style={{color:"var(--orange)"}}>{dName}</strong>.<br/><br/>
+                        En un máximo de <strong>48 horas hábiles</strong> remitiremos el resultado completo al correo:<br/>
+                        <strong style={{color:"var(--orange)"}}>{dEmail}</strong>
+                      </div>
+                      <div style={{marginTop:"30px",padding:"14px 24px",background:"var(--orange-p)",borderRadius:"10px",display:"inline-block",fontSize:"13px",color:"var(--t2)"}}>
+                        Referencia: Distintividad — {dName}
+                      </div>
+                    </div>
+                    <div className="btn-row">
+                      <button className="btn-primary" onClick={goHome}>Volver al inicio</button>
+                    </div>
+                  </>
+                ):(
+                  <>
+                    {dEmail&&<div className="alert-ok">✓ El resultado se enviará a <strong>{dEmail}</strong></div>}
+                    <div className="res-hdr">
+                      <div className="res-title">Análisis de distintividad — <em style={{color:"var(--orange)",fontStyle:"italic"}}>{dName}</em></div>
+                      <div className="res-meta">{OFFICES.find(o=>o.code===dOffice)?.label.split("—")[0].trim()}{dClasses.length?` · Clases ${dClasses.join(", ")}`:""}</div>
+                      <div className="res-badges">
+                        <span className="badge badge-dis">🔍 Distintividad intrínseca</span>
+                        {dEmail&&<span className="badge badge-email">✉ {dEmail}</span>}
+                      </div>
+                    </div>
+                    {loading
+                      ? <div className="res-body"><p style={{color:"var(--tm)",fontStyle:"italic"}}>Generando el análisis…</p></div>
+                      : <>
+                          <DisResult data={disData}/>
+                          {disData?.recomendaciones?.length>0&&(
+                            <div className="dis-recs">
+                              <div className="dis-recs-title">Recomendaciones</div>
+                              {disData.recomendaciones.map((r,i)=><div className="dis-rec-item" key={i}><div className="dis-rec-dot"/>{r}</div>)}
+                            </div>
+                          )}
+                          {!disData&&result&&<div className="res-body">{fmt(result)}</div>}
+                        </>
+                    }
+                    <div className="btn-row">
+                      <button className="btn-secondary" onClick={goHome}>Inicio</button>
+                      <button className="btn-primary" onClick={()=>{const d=disData;if(!d)return;const html=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><style>body{font-family:Calibri,sans-serif;font-size:12pt;line-height:1.6;margin:40px;}h1{font-size:18pt;color:#1a365d;}h2{font-size:14pt;color:#2a4365;border-bottom:1px solid #ddd;padding-bottom:4px;}table{border-collapse:collapse;width:100%;margin:12px 0;}td,th{border:1px solid #ccc;padding:8px 12px;text-align:left;}th{background:#f0f4f8;font-weight:bold;}.fav{color:#2f855a;}.neu{color:#c07820;}.desf{color:#c53030;}</style></head><body><h1>Análisis de Distintividad — ${dName}</h1><p><strong>Puntuación:</strong> ${d.porcentaje}% — <strong>Nivel:</strong> ${d.nivel} REGISTRABILIDAD</p><p><strong>Veredicto:</strong> ${d.veredicto}</p><h2>Factores analizados</h2><table><tr><th>Factor</th><th>Resultado</th><th>Análisis</th></tr>${Object.entries(d.factores||{}).map(([k,v])=>`<tr><td>${k.replace(/_/g," ").replace(/^\w/,c=>c.toUpperCase())}</td><td class="${v.resultado==="FAVORABLE"?"fav":v.resultado==="NEUTRO"?"neu":"desf"}">${v.resultado}</td><td>${v.texto}</td></tr>`).join("")}</table><h2>Recomendaciones</h2><ul>${(d.recomendaciones||[]).map(r=>`<li>${r}</li>`).join("")}</ul></body></html>`;const b=new Blob([html],{type:"application/msword;charset=utf-8"});const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;a.download=`Analisis_Distintividad_${dName.replace(/\s/g,"_")}.doc`;a.click();URL.revokeObjectURL(u);}}>Descargar análisis</button>
+                    </div>
+                  </>
+                )}
               </>
             )}
           </main>
@@ -1324,17 +1344,38 @@ ${oppsTxt}`;
                     <div className="notice-teal-text">Este escrito ha sido redactado imitando el estilo del documento modelo aportado: <strong>{styleFileName}</strong>. La estructura, tono y forma de argumentar reflejan el estilo propio del cliente.</div>
                   </div>
                 )}
-                {oLawyer&&<div className="notice-purple"><div className="notice-purple-title">⚖ Revisión por abogado — en proceso</div><div className="notice-purple-desc">Recibirá la versión revisada en máximo 48 horas hábiles en {oEmail}.</div></div>}
-                <div className="res-body">
-                  {loading
-                    ? <p style={{color:"var(--tm)",fontStyle:"italic"}}>Generando el escrito…</p>
-                    : fmt(result)
-                  }
-                </div>
-                <div className="btn-row">
-                  <button className="btn-secondary" onClick={goHome}>Inicio</button>
-                  <button className="btn-primary" onClick={()=>{const txt=result||"";const htmlBody=txt.split("\n").map(line=>{if(!line.trim())return"<br/>";let h=line.replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/\*(.+?)\*/g,"<em>$1</em>");if(line.startsWith(">"))return`<blockquote style="border-left:3px solid #999;padding:6px 12px;margin:10px 0;color:#555;font-style:italic;">${h.replace(/^>\s?/,"")}</blockquote>`;if(/^(I|II|III|IV|V|VI|VII|VIII|IX|X)\.\s/.test(line))return`<h2 style="font-size:14pt;color:#2a4365;margin-top:18px;">${h}</h2>`;return`<p>${h}</p>`;}).join("");const html=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><style>body{font-family:Calibri,sans-serif;font-size:12pt;line-height:1.8;margin:40px;}h2{border-bottom:1px solid #ddd;padding-bottom:4px;}strong{color:#1a365d;}blockquote{background:#f7f7f7;border-radius:4px;}</style></head><body>${htmlBody}</body></html>`;const b=new Blob([html],{type:"application/msword;charset=utf-8"});const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;a.download=`${oRole==="solicited"?"Contestacion_Oposicion":"Escrito_Oposicion"}_${oName.replace(/\s/g,"_")}.doc`;a.click();URL.revokeObjectURL(u);}}>Descargar escrito</button>
-                </div>
+                {oLawyer?(
+                  <>
+                    <div style={{textAlign:"center",padding:"60px 20px"}}>
+                      <div style={{fontSize:"48px",marginBottom:"20px"}}>⚖</div>
+                      <div style={{fontSize:"22px",fontWeight:600,color:"var(--t1)",marginBottom:"12px",fontFamily:"'Playfair Display',serif"}}>Escrito bajo revisión de un experto</div>
+                      <div style={{fontSize:"15px",color:"var(--t2)",lineHeight:"1.7",maxWidth:"480px",margin:"0 auto"}}>
+                        Un abogado especialista en propiedad industrial revisará y perfeccionará el escrito de {oRole==="solicited"?"contestación a la oposición":"oposición"} relativo a <strong style={{color:"var(--orange)"}}>{oName}</strong>.<br/><br/>
+                        En un máximo de <strong>48 horas hábiles</strong> remitiremos el documento final al correo:<br/>
+                        <strong style={{color:"var(--orange)"}}>{oEmail}</strong>
+                      </div>
+                      <div style={{marginTop:"30px",padding:"14px 24px",background:"var(--orange-p)",borderRadius:"10px",display:"inline-block",fontSize:"13px",color:"var(--t2)"}}>
+                        Referencia: {oRole==="solicited"?"Contestación":"Oposición"} — {oName}
+                      </div>
+                    </div>
+                    <div className="btn-row">
+                      <button className="btn-primary" onClick={goHome}>Volver al inicio</button>
+                    </div>
+                  </>
+                ):(
+                  <>
+                    <div className="res-body">
+                      {loading
+                        ? <p style={{color:"var(--tm)",fontStyle:"italic"}}>Generando el escrito…</p>
+                        : fmt(result)
+                      }
+                    </div>
+                    <div className="btn-row">
+                      <button className="btn-secondary" onClick={goHome}>Inicio</button>
+                      <button className="btn-primary" onClick={()=>{const txt=result||"";const htmlBody=txt.split("\n").map(line=>{if(!line.trim())return"<br/>";let h=line.replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/\*(.+?)\*/g,"<em>$1</em>");if(line.startsWith(">"))return`<blockquote style="border-left:3px solid #999;padding:6px 12px;margin:10px 0;color:#555;font-style:italic;">${h.replace(/^>\s?/,"")}</blockquote>`;if(/^(I|II|III|IV|V|VI|VII|VIII|IX|X)\.\s/.test(line))return`<h2 style="font-size:14pt;color:#2a4365;margin-top:18px;">${h}</h2>`;return`<p>${h}</p>`;}).join("");const html=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><style>body{font-family:Calibri,sans-serif;font-size:12pt;line-height:1.8;margin:40px;}h2{border-bottom:1px solid #ddd;padding-bottom:4px;}strong{color:#1a365d;}blockquote{background:#f7f7f7;border-radius:4px;}</style></head><body>${htmlBody}</body></html>`;const b=new Blob([html],{type:"application/msword;charset=utf-8"});const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;a.download=`${oRole==="solicited"?"Contestacion_Oposicion":"Escrito_Oposicion"}_${oName.replace(/\s/g,"_")}.doc`;a.click();URL.revokeObjectURL(u);}}>Descargar escrito</button>
+                    </div>
+                  </>
+                )}
               </>
             )}
           </main>
