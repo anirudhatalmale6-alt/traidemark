@@ -48,6 +48,7 @@ curl_setopt_array($ch, [
     CURLOPT_POSTFIELDS => http_build_query([
         'payment_method_types[]' => 'card',
         'mode' => 'payment',
+        'line_items[0][quantity]' => 1,
         'line_items[0][price_data][currency]' => 'eur',
         'line_items[0][price_data][unit_amount]' => $amount,
         'line_items[0][price_data][product_data][name]' => $description,
