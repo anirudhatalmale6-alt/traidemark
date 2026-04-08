@@ -12,6 +12,7 @@ $to = filter_var($input['to'] ?? '', FILTER_VALIDATE_EMAIL);
 $service = $input['service'] ?? '';
 $resultHtml = $input['resultHtml'] ?? '';
 $markName = $input['markName'] ?? '';
+$isAdmin = $input['isAdmin'] ?? false;
 
 if (!$to || !$resultHtml) {
     http_response_code(400);
@@ -22,7 +23,9 @@ if (!$to || !$resultHtml) {
 $from = 'resultados@traidemark.es';
 $fromName = 'trAIdemark';
 
-if ($service === 'distinctiveness') {
+if ($isAdmin) {
+    $subject = "NUEVO ENCARGO — Revisión Profesional — $markName";
+} elseif ($service === 'distinctiveness') {
     $subject = "Análisis de Distintividad — $markName — trAIdemark";
 } else {
     $subject = "Escrito de Oposición/Defensa — $markName — trAIdemark";

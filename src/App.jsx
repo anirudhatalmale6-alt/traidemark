@@ -561,6 +561,9 @@ Responde ÚNICAMENTE con el siguiente JSON, sin texto fuera del JSON:
           const emailHtml = `<p><strong>Denominación:</strong> ${dName}</p><p><strong>Puntuación:</strong> ${parsed.porcentaje}% — <strong>Nivel:</strong> ${parsed.nivel}</p><p><strong>Veredicto:</strong> ${parsed.veredicto}</p><h3>Factores</h3><table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse;width:100%;"><tr><th>Factor</th><th>Resultado</th><th>Análisis</th></tr>${Object.entries(parsed.factores||{}).map(([k,v])=>`<tr><td>${k.replace(/_/g," ")}</td><td>${v.resultado}</td><td>${v.texto}</td></tr>`).join("")}</table><h3>Recomendaciones</h3><ul>${(parsed.recomendaciones||[]).map(r=>`<li>${r}</li>`).join("")}</ul>`;
           sendResultEmail(dEmail, "distinctiveness", dName, emailHtml);
         }
+        if(dLawyer && dEmail){
+          sendAdminNotification("distinctiveness", dName, dEmail, emailHtml);
+        }
       } catch { setDisData(null); }
       setResult(txt);
     } catch { setResult("⚠️ Error de conexión."); }
@@ -635,6 +638,9 @@ ${oppsTxt}`;
         }).join("");
         sendResultEmail(oEmail, "opposition", oName, emailHtml);
       }
+      if(oLawyer && oEmail && txt && !txt.startsWith("⚠️")){
+        sendAdminNotification("opposition", oName, oEmail, emailHtml);
+      }
     } catch { setResult("⚠️ Error de conexión. Por favor, inténtelo de nuevo."); }
     finally { setLoading(false); }
   };
@@ -647,6 +653,21 @@ ${oppsTxt}`;
         body:JSON.stringify({ to:email, service, markName, resultHtml })
       });
     } catch(e){ console.error("Email send failed:", e); }
+  };
+
+  const sendAdminNotification = async (service, markName, clientEmail, resultHtml) => {
+    try {
+      await fetch("/api/send-email", {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          to:"info@traidemark.es",
+          service,
+          markName,
+          resultHtml: `<div style="background:#fff3e0;padding:16px;border-radius:8px;border-left:4px solid #E8845C;margin-bottom:20px;"><strong>NUEVO ENCARGO DE REVISION PROFESIONAL</strong><br/>Cliente: <strong>${clientEmail}</strong><br/>Servicio: <strong>${service==="distinctiveness"?"Distintividad":"Oposicion/Defensa"}</strong><br/>Marca: <strong>${markName}</strong><br/>Plazo: <strong>48 horas habiles</strong></div><hr style="margin:20px 0;"/><h3>Resultado IA generado (base para revision):</h3>${resultHtml}`,
+          isAdmin: true
+        })
+      });
+    } catch(e){ console.error("Admin notification failed:", e); }
   };
 
   /* ── PAYMENT ── */
