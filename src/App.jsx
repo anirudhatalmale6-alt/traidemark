@@ -554,17 +554,17 @@ Responde ÚNICAMENTE con el siguiente JSON, sin texto fuera del JSON:
         return `
 ${oRole==="solicited"?"Marca Oponente":"Solicitud Impugnada"} ${i+1}:
 - Denominación: ${op.name||"(no especificada)"}  Expediente: ${op.expediente||"—"}
-- ${oRole==="opponent"?"Fecha de presentación de la solicitud":"Fecha de registro"}: ${op.regDate||"—"}${yearsOld!==null?` (antigüedad: ${yearsOld} años)`:""}
+- ${oRole==="solicited"?"Fecha de registro":"Fecha de presentación"}: ${op.regDate||"—"}${yearsOld!==null?` (antigüedad: ${yearsOld} años)`:""}
 - Clases: ${op.classes.length?op.classes.map(c=>`Clase ${c}`).join(", "):"—"}
 - Productos: ${op.products||"—"}`;
       }).join("\n");
 
-      const hasOldMarks = oRole==="opponent" && opps.some(op => {
+      const hasOldMarks = oRole==="solicited" && opps.some(op => {
         if(!op.regDate) return false;
         return (now - new Date(op.regDate)) / (365.25*24*60*60*1000) >= 5;
       });
       const useRequestSection = hasOldMarks
-        ? "\n\nIMPORTANTE — PRUEBA DE USO: Una o más de las marcas del solicitante (cuya solicitud impugnamos) fueron presentadas hace 5 o más años. Como OPONENTE, DEBES incluir un apartado específico solicitando la PRUEBA DE USO EFECTIVO de nuestra marca anterior conforme al artículo 39 de la Ley de Marcas (España) o al artículo 47.2 del Reglamento (UE) 2017/1001 (EUIPO), según la jurisdicción. Argumenta que el solicitante puede exigir la prueba de uso si nuestra marca lleva registrada más de 5 años, y prepara la defensa anticipándose a dicha solicitud, o bien solicita la prueba de uso de las marcas del solicitante si procede. Cita jurisprudencia relevante sobre prueba de uso."
+        ? "\n\nIMPORTANTE — PRUEBA DE USO: Una o más de las marcas oponentes tienen 5 o más años de antigüedad desde su registro. Como SOLICITANTE que defiende su solicitud, DEBES incluir un apartado específico solicitando la PRUEBA DE USO EFECTIVO de dichas marcas oponentes conforme al artículo 39 de la Ley 17/2001 de Marcas (España) o al artículo 47.2 del Reglamento (UE) 2017/1001 (EUIPO), según la jurisdicción. Argumenta que la falta de uso efectivo y real durante 5 años consecutivos desde el registro puede dar lugar a la caducidad de la marca oponente, y solicita formalmente que el oponente aporte pruebas de uso efectivo en el territorio y para los productos/servicios reivindicados. Cita jurisprudencia relevante sobre prueba de uso (ej. TJUE C-40/01 Ansul, C-259/02 La Mer Technology)."
         : "";
 
       const ctx = `ROL: ${oRole==="solicited"?"SOLICITANTE — defiende su solicitud":"OPONENTE — presenta oposición"}
@@ -873,9 +873,9 @@ ${oppsTxt}`;
         <header className="hdr">
           <img src={LOGO_URI} alt="trAIdemark" className="hdr-logo" onClick={goHome}/>
           <nav className="nav">
-            <a href="#">Cómo funciona</a>
-            <a href="#">Jurisdicciones</a>
-            <a href="#">FAQ</a>
+            <a href="#" onClick={e=>{e.preventDefault();setService("howItWorks");}}>Cómo funciona</a>
+            <a href="#" onClick={e=>{e.preventDefault();setService("jurisdictions");}}>Jurisdicciones</a>
+            <a href="#" onClick={e=>{e.preventDefault();setService("faq");}}>FAQ</a>
             <div id="google_translate_element" style={{display:"inline-block"}}/>
             <a className="nav-cta" href="#" onClick={e=>{e.preventDefault();if(!discAccepted)setShowDisc(true);}}>Iniciar</a>
           </nav>
@@ -1226,7 +1226,7 @@ ${oppsTxt}`;
                         <div className="fg"><label className="flabel">N.º registro / expediente</label><input className="finput" placeholder="ej. 3456789" value={op.expediente} onChange={e=>updOpp(op.id,"expediente",e.target.value)}/></div>
                       </div>
                       <div className="frow">
-                        <div className="fg"><label className="flabel">{oRole==="opponent"?"Fecha de presentación de la solicitud":"Fecha de registro"}</label><input className="finput" type="date" value={op.regDate} onChange={e=>updOpp(op.id,"regDate",e.target.value)}/></div>
+                        <div className="fg"><label className="flabel">{oRole==="solicited"?"Fecha de registro de la marca oponente":"Fecha de presentación de la solicitud"}</label><input className="finput" type="date" value={op.regDate} onChange={e=>updOpp(op.id,"regDate",e.target.value)}/></div>
                         <div className="fg"/>
                       </div>
                       <div className="frow">
@@ -1366,6 +1366,102 @@ ${oppsTxt}`;
                 )}
               </>
             )}
+          </main>
+        )}
+
+        {/* ══ HOW IT WORKS ══ */}
+        {service==="howItWorks"&&(
+          <main className="main">
+            <div className="bc"><span className="bc-lnk" onClick={goHome}>Inicio</span><span className="bc-sep">›</span><span className="bc-cur">Cómo funciona</span></div>
+            <div className="card" style={{marginTop:"24px"}}>
+              <div className="card-hdr"><div className="card-title" style={{fontFamily:"'Playfair Display',serif",fontSize:"24px"}}>Cómo funciona trAIdemark</div></div>
+              <div style={{lineHeight:"1.85",color:"var(--t2)",fontSize:"14px"}}>
+                <div style={{display:"flex",gap:"18px",alignItems:"flex-start",marginBottom:"28px"}}>
+                  <div style={{minWidth:"36px",height:"36px",borderRadius:"50%",background:"var(--orange-p)",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:600,color:"var(--orange)",fontSize:"16px"}}>1</div>
+                  <div><div style={{fontWeight:600,color:"var(--t1)",marginBottom:"4px"}}>Seleccione el servicio</div>Elija entre el <strong>análisis de distintividad</strong> (evaluación previa al registro) o la generación de un <strong>escrito de oposición o defensa</strong> ante la OEPM o la EUIPO.</div>
+                </div>
+                <div style={{display:"flex",gap:"18px",alignItems:"flex-start",marginBottom:"28px"}}>
+                  <div style={{minWidth:"36px",height:"36px",borderRadius:"50%",background:"var(--orange-p)",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:600,color:"var(--orange)",fontSize:"16px"}}>2</div>
+                  <div><div style={{fontWeight:600,color:"var(--t1)",marginBottom:"4px"}}>Complete los datos de su marca</div>Introduzca la denominación, la oficina de destino, las clases de Niza y los productos o servicios. En el caso de oposiciones, indique también los datos de la marca contraria y, opcionalmente, cargue un documento modelo para que el escrito imite su estilo de redacción.</div>
+                </div>
+                <div style={{display:"flex",gap:"18px",alignItems:"flex-start",marginBottom:"28px"}}>
+                  <div style={{minWidth:"36px",height:"36px",borderRadius:"50%",background:"var(--orange-p)",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:600,color:"var(--orange)",fontSize:"16px"}}>3</div>
+                  <div><div style={{fontWeight:600,color:"var(--t1)",marginBottom:"4px"}}>Realice el pago seguro</div>El pago se procesa a través de <strong>Stripe</strong>, la pasarela de pago líder. Sus datos bancarios nunca pasan por nuestro servidor. Puede elegir entre la generación inmediata por IA o añadir la revisión profesional por un abogado (+50 €).</div>
+                </div>
+                <div style={{display:"flex",gap:"18px",alignItems:"flex-start",marginBottom:"28px"}}>
+                  <div style={{minWidth:"36px",height:"36px",borderRadius:"50%",background:"var(--orange-p)",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:600,color:"var(--orange)",fontSize:"16px"}}>4</div>
+                  <div><div style={{fontWeight:600,color:"var(--t1)",marginBottom:"4px"}}>Reciba su documento</div>El análisis o escrito se genera al instante y se envía a su correo electrónico. Si ha contratado la revisión profesional, un abogado especialista revisará y perfeccionará el documento, entregándolo en un máximo de <strong>48 horas hábiles</strong>.</div>
+                </div>
+                <div style={{display:"flex",gap:"18px",alignItems:"flex-start"}}>
+                  <div style={{minWidth:"36px",height:"36px",borderRadius:"50%",background:"var(--orange-p)",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:600,color:"var(--orange)",fontSize:"16px"}}>5</div>
+                  <div><div style={{fontWeight:600,color:"var(--t1)",marginBottom:"4px"}}>Descargue y utilice</div>Descargue el resultado en formato Word (.doc), listo para presentar ante la oficina correspondiente o para entregar a su letrado. El documento incluye jurisprudencia real, normativa aplicable y argumentación fundamentada.</div>
+                </div>
+              </div>
+            </div>
+            <div className="btn-row" style={{marginTop:"24px"}}><button className="btn-primary" onClick={goHome}>← Volver al inicio</button></div>
+          </main>
+        )}
+
+        {/* ══ JURISDICTIONS ══ */}
+        {service==="jurisdictions"&&(
+          <main className="main">
+            <div className="bc"><span className="bc-lnk" onClick={goHome}>Inicio</span><span className="bc-sep">›</span><span className="bc-cur">Jurisdicciones</span></div>
+            <div className="card" style={{marginTop:"24px"}}>
+              <div className="card-hdr"><div className="card-title" style={{fontFamily:"'Playfair Display',serif",fontSize:"24px"}}>Jurisdicciones disponibles</div><div className="card-sub">trAIdemark opera actualmente en las dos principales jurisdicciones de propiedad industrial para el mercado español y europeo.</div></div>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:"20px",marginTop:"8px"}}>
+                <div style={{border:"1px solid var(--border)",borderRadius:"var(--r)",padding:"24px"}}>
+                  <div style={{fontSize:"28px",marginBottom:"10px"}}>🇪🇸</div>
+                  <div style={{fontWeight:600,color:"var(--t1)",fontSize:"16px",marginBottom:"4px"}}>OEPM — España</div>
+                  <div style={{fontSize:"13px",color:"var(--tm)",marginBottom:"12px"}}>Oficina Española de Patentes y Marcas</div>
+                  <div style={{fontSize:"13px",color:"var(--t2)",lineHeight:"1.75"}}>
+                    <p>Registro de marcas nacionales en territorio español. Regulado por la <strong>Ley 17/2001 de Marcas</strong> y su Reglamento.</p>
+                    <p style={{marginTop:"8px"}}><strong>Normativa aplicada:</strong> Ley 17/2001 de Marcas, Real Decreto 687/2002, Directrices de Examen OEPM.</p>
+                    <p style={{marginTop:"8px"}}><strong>Jurisprudencia:</strong> Resoluciones OEPM, sentencias de la Audiencia Provincial y del Tribunal Supremo en materia de marcas.</p>
+                  </div>
+                </div>
+                <div style={{border:"1px solid var(--border)",borderRadius:"var(--r)",padding:"24px"}}>
+                  <div style={{fontSize:"28px",marginBottom:"10px"}}>🇪🇺</div>
+                  <div style={{fontWeight:600,color:"var(--t1)",fontSize:"16px",marginBottom:"4px"}}>EUIPO — Unión Europea</div>
+                  <div style={{fontSize:"13px",color:"var(--tm)",marginBottom:"12px"}}>Oficina de Propiedad Intelectual de la Unión Europea</div>
+                  <div style={{fontSize:"13px",color:"var(--t2)",lineHeight:"1.75"}}>
+                    <p>Registro de marcas de la Unión Europea con protección en los 27 Estados miembros. Regulado por el <strong>Reglamento (UE) 2017/1001</strong> sobre la marca de la Unión Europea.</p>
+                    <p style={{marginTop:"8px"}}><strong>Normativa aplicada:</strong> Reglamento (UE) 2017/1001 (RMUE), Reglamento Delegado (UE) 2018/625, Directrices de Examen EUIPO.</p>
+                    <p style={{marginTop:"8px"}}><strong>Jurisprudencia:</strong> Resoluciones de las Salas de Recurso de la EUIPO, sentencias del Tribunal General (TGUE) y del Tribunal de Justicia de la UE (TJUE).</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="btn-row" style={{marginTop:"24px"}}><button className="btn-primary" onClick={goHome}>← Volver al inicio</button></div>
+          </main>
+        )}
+
+        {/* ══ FAQ ══ */}
+        {service==="faq"&&(
+          <main className="main">
+            <div className="bc"><span className="bc-lnk" onClick={goHome}>Inicio</span><span className="bc-sep">›</span><span className="bc-cur">Preguntas frecuentes</span></div>
+            <div className="card" style={{marginTop:"24px"}}>
+              <div className="card-hdr"><div className="card-title" style={{fontFamily:"'Playfair Display',serif",fontSize:"24px"}}>Preguntas frecuentes</div></div>
+              <div style={{fontSize:"14px",color:"var(--t2)",lineHeight:"1.8"}}>
+                {[
+                  {q:"¿Qué es trAIdemark?",a:"trAIdemark es una herramienta de inteligencia artificial especializada en derecho de marcas. Genera análisis de distintividad y escritos de oposición o defensa con jurisprudencia real y normativa aplicable, adaptados a la OEPM (España) y la EUIPO (Unión Europea)."},
+                  {q:"¿Los documentos generados tienen validez legal?",a:"Los documentos son orientativos y constituyen una base profesional de alta calidad. No sustituyen el asesoramiento de un profesional habilitado en propiedad industrial, aunque pueden utilizarse como borrador o apoyo para la presentación ante la oficina correspondiente."},
+                  {q:"¿Qué es el análisis de distintividad?",a:"Es una evaluación del carácter distintivo intrínseco de su denominación: si puede ser registrada como marca según los criterios legales vigentes, con independencia de registros anteriores. Incluye puntuación de registrabilidad (0-100%), evaluación por factores (descriptividad, genericidad, carácter laudatorio, viabilidad por clase) y recomendaciones concretas."},
+                  {q:"¿Qué incluye el escrito de oposición o defensa?",a:"Un escrito profesional completo, estructurado en apartados numerados (I-VII), con análisis detallado de similitud fonética, visual, conceptual y de productos/servicios, citas de normativa aplicable (Ley de Marcas, Reglamento UE) y jurisprudencia real con números de resolución o sentencia."},
+                  {q:"¿Puedo elegir el idioma del escrito?",a:"Sí. Los escritos de oposición y defensa pueden generarse en español, inglés o francés. Seleccione el idioma en el formulario antes de realizar el pago."},
+                  {q:"¿Qué es la revisión profesional por abogado?",a:"Por un suplemento de 50 €, un abogado especialista en propiedad industrial revisa y perfecciona el documento generado por la IA. El resultado revisado se entrega en un máximo de 48 horas hábiles al correo electrónico indicado."},
+                  {q:"¿Cómo se realiza el pago?",a:"El pago se procesa de forma segura a través de Stripe. Sus datos bancarios nunca pasan por nuestro servidor. Aceptamos tarjetas de crédito y débito (Visa, Mastercard, American Express)."},
+                  {q:"¿Puedo cargar un documento de estilo propio?",a:"Sí. En el servicio de oposición/defensa puede cargar un documento Word (.docx) o PDF de un escrito jurídico anterior. La IA analizará su tono, estructura y forma de argumentar, y reproducirá fielmente ese estilo en el nuevo escrito."},
+                  {q:"¿Qué oficinas cubre trAIdemark?",a:"Actualmente cubrimos la OEPM (Oficina Española de Patentes y Marcas) para marcas nacionales en España, y la EUIPO (Oficina de Propiedad Intelectual de la UE) para marcas de la Unión Europea."},
+                  {q:"¿Cómo recibo el resultado?",a:"El documento se muestra en pantalla inmediatamente tras el pago y se envía automáticamente al correo electrónico que haya indicado. Además, puede descargarlo en formato Word (.doc) directamente desde la plataforma."},
+                ].map((item,i)=>(
+                  <div key={i} style={{borderBottom:i<9?"1px solid var(--border)":"none",paddingBottom:"18px",marginBottom:"18px"}}>
+                    <div style={{fontWeight:600,color:"var(--t1)",marginBottom:"6px"}}>{item.q}</div>
+                    <div>{item.a}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="btn-row" style={{marginTop:"24px"}}><button className="btn-primary" onClick={goHome}>← Volver al inicio</button></div>
           </main>
         )}
 
