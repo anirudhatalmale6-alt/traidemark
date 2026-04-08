@@ -10,6 +10,7 @@ RewriteEngine On
 RewriteRule ^api/claude$ api/claude.php [L,QSA]
 RewriteRule ^api/stripe-checkout$ api/stripe-checkout.php [L,QSA]
 RewriteRule ^api/stripe-verify$ api/stripe-verify.php [L,QSA]
+RewriteRule ^api/send-email$ api/send-email.php [L,QSA]
 
 # SPA: route all non-file requests to index.html
 RewriteCond %{REQUEST_FILENAME} !-f

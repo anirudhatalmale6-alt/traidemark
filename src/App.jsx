@@ -100,7 +100,7 @@ const css = `
 
   /* HERO */
   .hero{background:var(--bg-soft);border-bottom:1px solid var(--border);padding:56px 48px 64px;text-align:center;}
-  .hero-logo{height:44px;margin:0 auto 22px;display:block;}
+  .hero-logo{height:44px;margin:0 auto 22px;display:block;mix-blend-mode:multiply;}
   .hero-pill{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--orange);background:var(--orange-p);border:1px solid var(--orange-p2);padding:5px 14px;border-radius:20px;margin-bottom:18px;}
   .hero-title{font-family:'Playfair Display',serif;font-size:clamp(26px,3.6vw,42px);font-weight:400;line-height:1.18;color:var(--t1);max-width:900px;margin:0 auto 14px;letter-spacing:-.02em;}
   .hero-title em{font-style:italic;color:var(--orange);}
@@ -554,7 +554,13 @@ Responde ÚNICAMENTE con el siguiente JSON, sin texto fuera del JSON:
         prompt
       );
       try {
-        setDisData(JSON.parse(txt.replace(/```json|```/g,"").trim()));
+        const parsed = JSON.parse(txt.replace(/```json|```/g,"").trim());
+        setDisData(parsed);
+        // Send email with formatted result
+        if(dEmail){
+          const emailHtml = `<p><strong>Denominación:</strong> ${dName}</p><p><strong>Puntuación:</strong> ${parsed.porcentaje}% — <strong>Nivel:</strong> ${parsed.nivel}</p><p><strong>Veredicto:</strong> ${parsed.veredicto}</p><h3>Factores</h3><table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse;width:100%;"><tr><th>Factor</th><th>Resultado</th><th>Análisis</th></tr>${Object.entries(parsed.factores||{}).map(([k,v])=>`<tr><td>${k.replace(/_/g," ")}</td><td>${v.resultado}</td><td>${v.texto}</td></tr>`).join("")}</table><h3>Recomendaciones</h3><ul>${(parsed.recomendaciones||[]).map(r=>`<li>${r}</li>`).join("")}</ul>`;
+          sendResultEmail(dEmail, "distinctiveness", dName, emailHtml);
+        }
       } catch { setDisData(null); }
       setResult(txt);
     } catch { setResult("⚠️ Error de conexión."); }
@@ -618,8 +624,29 @@ ${oppsTxt}`;
         userContent
       );
       setResult(txt);
+      // Send email with formatted result
+      if(oEmail && txt && !txt.startsWith("⚠️")){
+        const emailHtml = txt.split("\n").map(line=>{
+          if(!line.trim()) return "<br/>";
+          let h=line.replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/\*(.+?)\*/g,"<em>$1</em>");
+          if(line.startsWith(">")) return `<blockquote style="border-left:3px solid #999;padding:6px 12px;color:#555;">${h.replace(/^>\s?/,"")}</blockquote>`;
+          if(/^(I|II|III|IV|V|VI|VII|VIII|IX|X)\.\s/.test(line)) return `<h3>${h}</h3>`;
+          return `<p>${h}</p>`;
+        }).join("");
+        sendResultEmail(oEmail, "opposition", oName, emailHtml);
+      }
     } catch { setResult("⚠️ Error de conexión. Por favor, inténtelo de nuevo."); }
     finally { setLoading(false); }
+  };
+
+  /* ── EMAIL ── */
+  const sendResultEmail = async (email, service, markName, resultHtml) => {
+    try {
+      await fetch("/api/send-email", {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({ to:email, service, markName, resultHtml })
+      });
+    } catch(e){ console.error("Email send failed:", e); }
   };
 
   /* ── PAYMENT ── */
