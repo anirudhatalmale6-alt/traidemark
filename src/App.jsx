@@ -1238,6 +1238,7 @@ ${oppsTxt}`;
                               <span className="sz-badge sz-word">Word .docx</span>
                               <span className="sz-badge sz-pdf">PDF</span>
                             </div>
+                            <div style={{fontSize:"11px",color:"var(--tm)",marginTop:"8px"}}>Se recomienda usar archivos PDF hasta 3 MB para un óptimo resultado</div>
                           </>
                         )}
                         {styleProcessing && <div className="sz-processing">⏳ Procesando documento…</div>}
