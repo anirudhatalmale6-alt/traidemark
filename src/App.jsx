@@ -575,6 +575,10 @@ Responde ÚNICAMENTE con el siguiente JSON, sin texto fuera del JSON:
       const _oLang = s.oLang || oLang;
       const _oOfficeLabel = OFFICES.find(o=>o.code===_oOffice)?.label||_oOffice;
       const _oJur = JURS[_oOffice]||JURS.default;
+      const _styleReady = s.styleReady || styleReady;
+      const _styleIsPdf = s.styleIsPdf || styleIsPdf;
+      const _styleB64 = s.styleB64 || styleB64;
+      const _styleText = s.styleText || styleText;
       savedFormRef.current = null;
       const now = new Date();
       const oppsTxt = _opps.map((op,i)=>{
@@ -605,10 +609,10 @@ ${_oRole==="solicited"?"MARCA A DEFENDER:":"MARCA ANTERIOR BASE:"}
 ${_oRole==="solicited"?"MARCAS OPONENTES:":"SOLICITUDES A IMPUGNAR:"}
 ${oppsTxt}`;
 
-      const styleSection = styleReady
-        ? styleIsPdf
+      const styleSection = _styleReady
+        ? _styleIsPdf
           ? "\n\nIMITACIÓN DE ESTILO: El cliente ha adjuntado un documento modelo (PDF). Analiza detenidamente su estructura, tono, nivel de formalidad, forma de construir los argumentos y cualquier rasgo estilístico. Reproduce ese estilo fielmente en el escrito."
-          : `\n\nIMITACIÓN DE ESTILO: Analiza este documento modelo del cliente y reproduce fielmente su estilo de redacción (tono, estructura, formalidad, forma de argumentar):\n\n--- DOCUMENTO MODELO ---\n${styleText.slice(0,4000)}${styleText.length>4000?"\n[...]":""}\n--- FIN DOCUMENTO MODELO ---`
+          : `\n\nIMITACIÓN DE ESTILO: Analiza este documento modelo del cliente y reproduce fielmente su estilo de redacción (tono, estructura, formalidad, forma de argumentar):\n\n--- DOCUMENTO MODELO ---\n${_styleText.slice(0,4000)}${_styleText.length>4000?"\n[...]":""}\n--- FIN DOCUMENTO MODELO ---`
         : "";
 
       const langMap = {es:"español",en:"inglés (English)",fr:"francés (Français)"};
@@ -621,9 +625,9 @@ ${oppsTxt}`;
         : `Eres experto en derecho de marcas con profundo conocimiento de las directrices y documentación oficial de la OEPM y la EUIPO. Redacta un ESCRITO DE OPOSICIÓN DE MARCA profesional conforme a la legislación ${_oJur}.${styleSection}${useRequestSection}${langInstr}${qualityBlock}\n\n${ctx}\n\nEstructura: I–VII en números romanos. Mínimo 1200 palabras. **Negrita** términos jurídicos, *cursiva* denominaciones, > citas. Redacta el escrito completo:`;
 
       let userContent;
-      if (styleReady && styleIsPdf && styleB64) {
+      if (_styleReady && _styleIsPdf && _styleB64) {
         userContent = [
-          { type:"document", source:{ type:"base64", media_type:"application/pdf", data:styleB64 } },
+          { type:"document", source:{ type:"base64", media_type:"application/pdf", data:_styleB64 } },
           { type:"text", text:mainPrompt }
         ];
       } else {
@@ -684,7 +688,12 @@ ${oppsTxt}`;
     if(svc==="distinctiveness"){
       localStorage.setItem("traidemark_form", JSON.stringify({svc,dName,dOffice,dClasses,dProds,dLogo,dEmail,dLawyer}));
     } else if(svc==="opposition"){
-      localStorage.setItem("traidemark_form", JSON.stringify({svc,oRole,oName,oExp,oFilingDate,oOffice,oClasses,oProds,oLogo,opps,oEmail,oLawyer,oLang,styleText}));
+      try {
+        const pdfData = styleIsPdf && styleB64 && styleB64.length < 3000000 ? styleB64 : "";
+        localStorage.setItem("traidemark_form", JSON.stringify({svc,oRole,oName,oExp,oFilingDate,oOffice,oClasses,oProds,oLogo,opps,oEmail,oLawyer,oLang,styleText,styleReady,styleIsPdf,styleFileName,styleB64:pdfData}));
+      } catch(e) {
+        localStorage.setItem("traidemark_form", JSON.stringify({svc,oRole,oName,oExp,oFilingDate,oOffice,oClasses,oProds,oLogo,opps,oEmail,oLawyer,oLang,styleText,styleReady,styleIsPdf,styleFileName,styleB64:""}));
+      }
     }
   };
 
@@ -759,6 +768,11 @@ ${oppsTxt}`;
             if(saved.oEmail) setOEmail(saved.oEmail);
             if(saved.oLawyer!==undefined) setOLawyer(saved.oLawyer);
             if(saved.oLang) setOLang(saved.oLang);
+            if(saved.styleText) setStyleText(saved.styleText);
+            if(saved.styleReady) setStyleReady(saved.styleReady);
+            if(saved.styleIsPdf) setStyleIsPdf(saved.styleIsPdf);
+            if(saved.styleFileName) setStyleFileName(saved.styleFileName);
+            if(saved.styleB64) setStyleB64(saved.styleB64);
             savedFormRef.current = saved;
             setService("opposition"); setOStep(4);
             setLoading(false);
