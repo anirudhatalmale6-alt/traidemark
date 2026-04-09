@@ -618,11 +618,45 @@ ${oppsTxt}`;
       const langMap = {es:"español",en:"inglés (English)",fr:"francés (Français)"};
       const langInstr = _oLang!=="es" ? `\n\nIDIOMA: Redacta el escrito COMPLETO en ${langMap[_oLang]}. Toda la argumentación, encabezados, citas y conclusiones deben estar en ${langMap[_oLang]}.` : "";
 
-      const qualityBlock = `\n\nINSTRUCCIONES DE CALIDAD:\n- FUNDAMENTAL: Utiliza TODOS los datos proporcionados (denominaciones, expedientes, clases, productos, fechas). El escrito debe referirse SIEMPRE a las marcas concretas facilitadas, con sus nombres exactos, números de expediente y clases. NO generes un escrito genérico o plantilla.\n- Consulta y aplica las directrices oficiales de examen de la oficina correspondiente (Directrices de Examen OEPM o Directrices EUIPO según proceda).\n- Cita normativa aplicable con artículos concretos (Ley 17/2001 de Marcas, Reglamento (UE) 2017/1001, etc.).\n- Incluye jurisprudencia REAL y relevante: sentencias del Tribunal General de la UE (TGUE), del TJUE, resoluciones de la Sala de Recurso de la EUIPO, resoluciones de la OEPM, con números de asunto y fecha (ej. T-XXX/XX, R XXXX/X-X).\n- Realiza un análisis DETALLADO de la comparación entre las marcas concretas: similitud fonética (descomposición silábica, acentuación, ritmo), similitud visual (longitud, letras comunes, estructura), similitud conceptual (significado evocado, asociaciones), y similitud de productos/servicios (criterios de afinidad, canales de distribución, público destinatario).\n- Aplica el principio de interdependencia de factores (canon global de apreciación del riesgo de confusión).\n- El resultado debe ser un escrito completo, profesional, listo para presentar, con máximo rigor técnico, que haga referencia CONCRETA a las marcas y datos proporcionados.`;
+      const qualityBlock = `\n\nINSTRUCCIONES DE CALIDAD (OBLIGATORIAS — el escrito será rechazado si no se cumplen):
+
+1. DATOS CONCRETOS: Utiliza TODOS los datos proporcionados. Cita las denominaciones exactas, números de expediente, clases y productos en cada argumento. NO generes un escrito genérico.
+
+2. LEGISLACIÓN — Cita artículos CONCRETOS con su contenido resumido:
+${_oOffice==="OEPM"?`   - Ley 17/2001 de Marcas: arts. 4 (concepto de marca), 5 (prohibiciones absolutas), 6.1.b (riesgo de confusión), 7 (marcas notorias), 8 (marcas renombradas), 34 (derechos conferidos), 39 (prueba de uso)
+   - Real Decreto 687/2002: disposiciones sobre procedimiento de oposición
+   - Directrices de Examen de la OEPM: criterios de examen de similitud y distintividad`:`   - Reglamento (UE) 2017/1001 (RMUE): arts. 8.1.b (riesgo de confusión), 8.5 (marcas renombradas), 18 (uso efectivo), 47.2 (prueba de uso en oposiciones), 94 (motivación de resoluciones)
+   - Reglamento Delegado (UE) 2018/625: reglas de procedimiento de las Salas de Recurso
+   - Directrices de Examen EUIPO: Parte C (Oposición), Sección 2 (Doble identidad y riesgo de confusión)`}
+   Transcribe literalmente fragmentos clave de los artículos que apliques (entre comillas o en bloque de cita).
+
+3. JURISPRUDENCIA — Cita MÍNIMO 5-8 resoluciones/sentencias REALES con número de asunto y fecha. Ejemplos reales que debes conocer:
+   - TJUE C-251/95 Sabel/Puma (apreciación global del riesgo de confusión)
+   - TJUE C-342/97 Lloyd Schuhfabrik (factores de similitud fonética, visual y conceptual)
+   - TJUE C-120/04 Medion/Thomson (marcas compuestas, elemento dominante)
+   - TJUE C-40/01 Ansul (concepto de uso efectivo)
+   - TJUE C-334/05 P Shaker/Limonchelo (impresión de conjunto)
+   - TGUE T-112/03 Flexi Air (coexistencia de marcas)
+   - TGUE T-169/03 ALADIN/Aladdin (similitud conceptual)
+   Cita las que sean relevantes al caso Y añade otras sentencias aplicables. Para cada cita, indica brevemente qué principio establece y cómo se aplica al caso concreto.
+
+4. DIRECTRICES OFICIALES — Cita secciones específicas de las Directrices:
+${_oOffice==="OEPM"?`   - Guía de Examen OEPM: criterios de evaluación de similitud de signos y de productos/servicios`:`   - Directrices EUIPO Parte C, Sección 2, Capítulo 2: Similitud de los signos
+   - Directrices EUIPO Parte C, Sección 2, Capítulo 3: Apreciación global
+   - Directrices EUIPO Parte C, Sección 2, Capítulo 7: Público destinatario y grado de atención`}
+
+5. ANÁLISIS DETALLADO DE COMPARACIÓN (apartado extenso):
+   a) Similitud fonética: descomposición silábica de ambas marcas, análisis de acentuación, ritmo, secuencia de consonantes y vocales, elementos iniciales/finales
+   b) Similitud visual: número de letras, letras comunes, estructura gráfica, tipografía si aplica
+   c) Similitud conceptual: significado evocado por cada marca, asociaciones, idioma de origen, impresión en el consumidor medio
+   d) Similitud de productos/servicios: conexión entre las clases, canales de distribución comunes, público destinatario, complementariedad o competencia
+   e) Apreciación global: interdependencia de factores (un alto grado de similitud de signos puede compensar una menor similitud de productos y viceversa)
+
+6. EXTENSIÓN: Mínimo 2500 palabras. El escrito debe ser EXHAUSTIVO y profesional.`;
 
       const mainPrompt = _oRole==="solicited"
-        ? `Eres experto en derecho de marcas con profundo conocimiento de las directrices y documentación oficial de la OEPM y la EUIPO. Redacta un ESCRITO DE CONTESTACIÓN A OPOSICIÓN profesional conforme a la legislación ${_oJur}.${styleSection}${useRequestSection}${langInstr}${qualityBlock}\n\n${ctx}\n\nEstructura: I–VI en números romanos. Mínimo 1200 palabras. **Negrita** términos jurídicos, *cursiva* denominaciones, > citas. Redacta el escrito completo:`
-        : `Eres experto en derecho de marcas con profundo conocimiento de las directrices y documentación oficial de la OEPM y la EUIPO. Redacta un ESCRITO DE OPOSICIÓN DE MARCA profesional conforme a la legislación ${_oJur}.${styleSection}${useRequestSection}${langInstr}${qualityBlock}\n\n${ctx}\n\nEstructura: I–VII en números romanos. Mínimo 1200 palabras. **Negrita** términos jurídicos, *cursiva* denominaciones, > citas. Redacta el escrito completo:`;
+        ? `Eres un abogado senior especializado en propiedad industrial con 20 años de experiencia ante la ${_oOffice==="OEPM"?"OEPM":"EUIPO"}. Redacta un ESCRITO DE CONTESTACIÓN A OPOSICIÓN profesional y exhaustivo conforme a la legislación ${_oJur}.${styleSection}${useRequestSection}${langInstr}${qualityBlock}\n\n${ctx}\n\nEstructura en números romanos (I, II, III...) con subapartados. **Negrita** términos jurídicos, *cursiva* denominaciones, > para citas literales de artículos o sentencias. Redacta el escrito COMPLETO, extenso y fundamentado:`
+        : `Eres un abogado senior especializado en propiedad industrial con 20 años de experiencia ante la ${_oOffice==="OEPM"?"OEPM":"EUIPO"}. Redacta un ESCRITO DE OPOSICIÓN DE MARCA profesional y exhaustivo conforme a la legislación ${_oJur}.${styleSection}${useRequestSection}${langInstr}${qualityBlock}\n\n${ctx}\n\nEstructura en números romanos (I, II, III...) con subapartados. **Negrita** términos jurídicos, *cursiva* denominaciones, > para citas literales de artículos o sentencias. Redacta el escrito COMPLETO, extenso y fundamentado:`;
 
       let userContent;
       if (_styleReady && _styleIsPdf && _styleB64) {
@@ -635,7 +669,7 @@ ${oppsTxt}`;
       }
 
       const txt = await callClaude(
-        `Eres un experto en derecho de marcas con profundo conocimiento de las directrices oficiales de examen de la OEPM y la EUIPO. Redactas escritos legales ${_oLang==="es"?"en español":_oLang==="en"?"in English":"en français"} con máxima precisión técnica y rigor jurídico. Consultas y aplicas la normativa y jurisprudencia más relevante, citando resoluciones reales con números de asunto. Estructuras con apartados en números romanos. Usas **negrita** para términos jurídicos, *cursiva* para nombres de marcas, > para citas literales. Nunca usas ### ni ##.`,
+        `Eres un abogado senior especializado en propiedad industrial con 20 años de experiencia práctica ante la OEPM y la EUIPO. Redactas escritos legales ${_oLang==="es"?"en español":_oLang==="en"?"in English":"en français"} con máxima precisión técnica y rigor jurídico. SIEMPRE citas artículos concretos de la legislación aplicable (transcribiendo su contenido), jurisprudencia real del TJUE y TGUE con números de asunto, y secciones específicas de las Directrices de Examen. Realizas análisis exhaustivos de similitud fonética, visual, conceptual y de productos/servicios. Estructuras con apartados en números romanos y subapartados. Usas **negrita** para términos jurídicos, *cursiva* para nombres de marcas, > para citas literales de artículos o sentencias. Nunca usas ### ni ##.`,
         userContent
       );
       setResult(txt);
