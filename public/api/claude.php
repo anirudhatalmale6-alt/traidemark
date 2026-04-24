@@ -1,6 +1,7 @@
 <?php
-set_time_limit(180);
-ini_set('max_execution_time', 180);
+set_time_limit(300);
+ini_set('max_execution_time', 300);
+ignore_user_abort(true);
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
@@ -17,7 +18,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-// Load API key from config file (outside web root ideally, or .htaccess protected)
 $configFile = __DIR__ . '/../config.json';
 if (!file_exists($configFile)) {
     http_response_code(500);
@@ -44,6 +44,33 @@ if (empty($systemPrompt) || empty($userContent)) {
     exit;
 }
 
+// Generate a unique job ID
+$jobId = bin2hex(random_bytes(16));
+$jobDir = sys_get_temp_dir() . '/traidemark_jobs';
+if (!is_dir($jobDir)) {
+    mkdir($jobDir, 0755, true);
+}
+$resultFile = "$jobDir/$jobId.json";
+
+// Save a "processing" marker
+file_put_contents($resultFile, json_encode(['status' => 'processing', 'started' => time()]));
+
+// Return the job ID immediately to the frontend
+echo json_encode(['jobId' => $jobId]);
+
+// Flush output so the browser receives the jobId right away
+if (function_exists('fastcgi_finish_request')) {
+    fastcgi_finish_request();
+} else {
+    // For LiteSpeed / other servers
+    ob_end_flush();
+    flush();
+    if (function_exists('litespeed_finish_request')) {
+        litespeed_finish_request();
+    }
+}
+
+// Now continue processing in the background
 $payload = json_encode([
     'model' => 'claude-sonnet-4-20250514',
     'max_tokens' => 10000,
@@ -56,7 +83,8 @@ curl_setopt_array($ch, [
     CURLOPT_POST => true,
     CURLOPT_POSTFIELDS => $payload,
     CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_TIMEOUT => 120,
+    CURLOPT_TIMEOUT => 280,
+    CURLOPT_CONNECTTIMEOUT => 30,
     CURLOPT_HTTPHEADER => [
         'Content-Type: application/json',
         'x-api-key: ' . $apiKey,
@@ -71,8 +99,7 @@ curl_close($ch);
 
 if ($curlError) {
     error_log("trAIdemark claude.php: curl error: $curlError");
-    http_response_code(500);
-    echo json_encode(['error' => 'Error connecting to Claude API: ' . $curlError]);
+    file_put_contents($resultFile, json_encode(['status' => 'error', 'error' => 'Error connecting to Claude API: ' . $curlError]));
     exit;
 }
 
@@ -81,8 +108,7 @@ error_log("trAIdemark claude.php: HTTP $httpCode, response length: " . strlen($r
 
 if (isset($data['error'])) {
     error_log("trAIdemark claude.php: API error: " . json_encode($data['error']));
-    http_response_code($httpCode);
-    echo json_encode(['error' => $data['error']['message'] ?? 'Claude API error']);
+    file_put_contents($resultFile, json_encode(['status' => 'error', 'error' => $data['error']['message'] ?? 'Claude API error']));
     exit;
 }
 
@@ -93,4 +119,5 @@ if (isset($data['content']) && is_array($data['content'])) {
     }
 }
 
-echo json_encode(['text' => $text]);
+// Save the completed result
+file_put_contents($resultFile, json_encode(['status' => 'done', 'text' => $text]));

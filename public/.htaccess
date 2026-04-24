@@ -1,5 +1,18 @@
 RewriteEngine On
 
+# LiteSpeed: increase timeout for long API requests
+<IfModule Litespeed>
+  SetEnv noabort 1
+  SetEnv max_execution_time 300
+</IfModule>
+
+# Prevent caching of index.html
+<Files "index.html">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires 0
+</Files>
+
 # Protect config file
 <Files "config.json">
     Order allow,deny
@@ -8,6 +21,7 @@ RewriteEngine On
 
 # Route API endpoints to PHP handlers
 RewriteRule ^api/claude$ api/claude.php [L,QSA]
+RewriteRule ^api/claude-poll$ api/claude-poll.php [L,QSA]
 RewriteRule ^api/stripe-checkout$ api/stripe-checkout.php [L,QSA]
 RewriteRule ^api/stripe-verify$ api/stripe-verify.php [L,QSA]
 RewriteRule ^api/send-email$ api/send-email.php [L,QSA]

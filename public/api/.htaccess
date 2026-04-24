@@ -1,0 +1,8 @@
+<IfModule Litespeed>
+  SetEnv noabort 1
+  SetEnv max_execution_time 300
+</IfModule>
+
+<IfModule mod_php.c>
+  php_value max_execution_time 300
+</IfModule>
