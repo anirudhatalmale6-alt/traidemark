@@ -19,14 +19,25 @@ const JURS = {
   default:"local aplicable",
 };
 
+const ABS_GROUNDS = [
+  {id:"descriptive", label:"Signo descriptivo o genérico"},
+  {id:"distinctive", label:"Carencia de carácter distintivo"},
+  {id:"shape", label:"Forma impuesta por la naturaleza del producto"},
+  {id:"deceptive", label:"Signo engañoso o susceptible de inducir a error"},
+  {id:"public_order", label:"Contrario al orden público o las buenas costumbres"},
+  {id:"flags", label:"Contiene emblemas, banderas o signos oficiales"},
+  {id:"geographical", label:"Indicación geográfica protegida"},
+  {id:"bad_faith", label:"Solicitud presentada de mala fe"},
+];
+
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap');
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
   :root{
-    --bg:#FFF; --bg-soft:#F7F6F3; --bg-subtle:#EFEEE9;
-    --t1:#16243E; --t2:#4A5568; --tm:#888; --tl:#BBB;
-    --border:#E3E2DD; --border-s:#C5C3BC;
-    --orange:#C05518; --orange-h:#A84A14; --orange-p:#FBF0EB; --orange-p2:#F1D9CB;
+    --bg:#FFFFFF; --bg-soft:#F8F8F8; --bg-subtle:#F0F0F0;
+    --t1:#111111; --t2:#555555; --tm:#888888; --tl:#BBBBBB;
+    --border:#E0E0E0; --border-s:#CCCCCC;
+    --orange:#222222; --orange-h:#000000; --orange-p:#F5F5F5; --orange-p2:#E8E8E8;
     --green:#276048; --green-p:#EBF4EF;
     --purple:#4A3EA0; --purple-p:#F0EEFF; --purple-b:#D3CCFF;
     --red:#9B2C2C; --red-p:#FFF5F5;
@@ -66,39 +77,39 @@ const css = `
 
   /* HEADER */
   .hdr{background:var(--bg);border-bottom:1px solid var(--border);padding:0 48px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
-  .hdr-logo{height:44px;cursor:pointer;display:block;}
+  .hdr-logo{height:54px;cursor:pointer;display:block;filter:grayscale(1) contrast(1.2);}
   .nav{display:flex;align-items:center;gap:26px;}
   .nav a{font-size:13px;font-weight:400;color:var(--tm);text-decoration:none;transition:color var(--tr);}
   .nav a:hover{color:var(--t1);}
-  .nav-cta{color:var(--orange)!important;border:1px solid var(--orange-p2);padding:7px 16px;border-radius:var(--r);background:var(--orange-p);font-size:13px;font-weight:500;}
-  .nav-cta:hover{background:var(--orange-p2)!important;}
+  .nav-cta{color:#FFF!important;border:1px solid #222;padding:7px 16px;border-radius:var(--r);background:#222;font-size:13px;font-weight:500;}
+  .nav-cta:hover{background:#000!important;}
 
   /* HERO */
   .hero{background:var(--bg-soft);border-bottom:1px solid var(--border);padding:56px 48px 64px;text-align:center;}
   .hero-logo{height:44px;margin:0 auto 22px;display:block;mix-blend-mode:multiply;}
-  .hero-pill{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--orange);background:var(--orange-p);border:1px solid var(--orange-p2);padding:5px 14px;border-radius:20px;margin-bottom:18px;}
-  .hero-title{font-family:'Inter',sans-serif;font-size:clamp(26px,3.6vw,42px);font-weight:600;line-height:1.18;color:var(--t1);max-width:900px;margin:0 auto 14px;letter-spacing:-.02em;}
-  .hero-title em{font-style:italic;color:var(--orange);}
+  .hero-pill{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#555;background:#F0F0F0;border:1px solid #DDD;padding:5px 14px;border-radius:20px;margin-bottom:18px;}
+  .hero-title{font-family:'Playfair Display',serif;font-size:clamp(28px,3.8vw,46px);font-weight:500;line-height:1.22;color:var(--t1);max-width:900px;margin:0 auto 18px;letter-spacing:-.01em;}
+  .hero-title em{font-style:italic;color:var(--t1);}
   .hero-sub{font-size:15px;font-weight:300;color:var(--t2);max-width:800px;margin:0 auto 30px;line-height:1.78;}
   .hero-rule{width:44px;height:1px;background:var(--border-s);margin:0 auto 18px;}
   .hero-note{font-size:12px;color:var(--tl);max-width:520px;margin:0 auto;line-height:1.65;}
 
   /* SERVICES */
   .services{padding:48px 48px 80px;max-width:1400px;margin:0 auto;width:100%;text-align:center;}
-  .services-title{font-family:'Playfair Display',serif;font-size:21px;font-weight:400;color:var(--t1);margin-bottom:5px;}
+  .services-title{font-family:'Segoe UI','Inter',sans-serif;font-size:24px;font-weight:600;color:var(--t1);margin-bottom:5px;letter-spacing:-.02em;}
   .services-sub{font-size:13px;font-weight:300;color:var(--tm);margin-bottom:24px;}
   .services-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
-  .svc-card{border:1.5px solid var(--border);border-radius:var(--rlg);padding:26px 24px;cursor:pointer;transition:all var(--tr);background:var(--bg);display:flex;flex-direction:column;gap:12px;text-align:left;}
-  .svc-card:hover{border-color:var(--border-s);box-shadow:var(--sh1);transform:translateY(-1px);}
-  .svc-icon{font-size:26px;}
-  .svc-title{font-family:'Playfair Display',serif;font-size:17px;font-weight:500;color:var(--t1);}
-  .svc-desc{font-size:13px;font-weight:300;color:var(--t2);line-height:1.7;flex:1;}
+  .svc-card{border:none;border-radius:var(--rlg);padding:32px 28px;cursor:pointer;transition:all var(--tr);background:#111;display:flex;flex-direction:column;gap:14px;text-align:left;}
+  .svc-card:hover{background:#000;box-shadow:0 8px 30px rgba(0,0,0,.25);transform:translateY(-2px);}
+  .svc-icon{display:none;}
+  .svc-title{font-family:'Segoe UI','Inter',sans-serif;font-size:24px;font-weight:600;color:#FFF;letter-spacing:-.02em;}
+  .svc-desc{font-size:13px;font-weight:300;color:rgba(255,255,255,.65);line-height:1.75;flex:1;}
   .svc-tags{display:flex;gap:6px;flex-wrap:wrap;}
-  .svc-tag{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--tm);background:var(--bg-soft);border:1px solid var(--border);padding:3px 9px;border-radius:20px;}
-  .svc-footer{display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid var(--border);}
-  .svc-price{font-size:12px;font-weight:600;color:var(--orange);}
-  .svc-arrow{font-size:15px;color:var(--orange);transition:transform var(--tr);}
-  .svc-card:hover .svc-arrow{transform:translateX(3px);}
+  .svc-tag{font-size:10px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;color:rgba(255,255,255,.5);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);padding:3px 9px;border-radius:20px;}
+  .svc-footer{display:flex;align-items:center;justify-content:space-between;padding-top:14px;border-top:1px solid rgba(255,255,255,.12);}
+  .svc-price{font-size:13px;font-weight:600;color:#FFF;}
+  .svc-arrow{font-size:15px;color:rgba(255,255,255,.5);transition:transform var(--tr);}
+  .svc-card:hover .svc-arrow{transform:translateX(3px);color:#FFF;}
 
   /* MAIN */
   .main{flex:1;padding:44px 48px 80px;max-width:1400px;margin:0 auto;width:100%;}
@@ -204,7 +215,7 @@ const css = `
   .btn-add:hover{border-color:var(--orange);color:var(--orange);background:var(--orange-p);border-style:solid;}
 
   /* BUTTONS */
-  .btn-primary{background:var(--orange);color:#fff;border:none;padding:11px 26px;border-radius:var(--r);font-family:'Inter',sans-serif;font-size:13px;font-weight:600;letter-spacing:.03em;cursor:pointer;transition:all var(--tr);box-shadow:0 2px 6px rgba(192,85,24,.22);}
+  .btn-primary{background:var(--orange);color:#fff;border:none;padding:11px 26px;border-radius:var(--r);font-family:'Inter',sans-serif;font-size:13px;font-weight:600;letter-spacing:.03em;cursor:pointer;transition:all var(--tr);box-shadow:0 2px 6px rgba(0,0,0,.15);}
   .btn-primary:hover{background:var(--orange-h);transform:translateY(-1px);}
   .btn-primary:disabled{opacity:.38;cursor:not-allowed;transform:none;box-shadow:none;}
   .btn-secondary{background:var(--bg);border:1px solid var(--border-s);color:var(--t2);padding:11px 22px;border-radius:var(--r);font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all var(--tr);}
@@ -455,6 +466,35 @@ export default function App() {
   const [vb_CP, setVbCP] = useState(""); const [vb_Country, setVbCountry] = useState("España");
   const vTotal = 39 + (vLawyer ? 39 : 0);
 
+  /* ── NULLITY state ── */
+  const [nStep,  setNStep]  = useState(1);
+  const [nGrounds, setNGrounds] = useState("");
+  const [nName,  setNName]  = useState("");
+  const [nExp,   setNExp]   = useState("");
+  const [nPartyName, setNPartyName] = useState("");
+  const [nRegDate, setNRegDate] = useState("");
+  const [nOffice,setNOffice]= useState("");
+  const [nClasses,setNClasses]=useState([]);
+  const [nProds, setNProds] = useState("");
+  const [nLogo,  setNLogo]  = useState(null);
+  const [nOpps,  setNOpps]  = useState([emptyOpp()]);
+  const [nAbsoluteGrounds, setNAbsoluteGrounds] = useState([]);
+  const [nEmail, setNEmail] = useState("");
+  const [nBilling,setNBilling]=useState(false);
+  const [nLawyer,setNLawyer]=useState(false);
+  const [nLang,setNLang]=useState("es");
+  const [nPay,   setNPay]   = useState("card");
+  const [nb_Name,setNbName]=useState(""); const [nb_Nif,setNbNif]=useState("");
+  const [nb_Addr,setNbAddr]=useState(""); const [nb_City,setNbCity]=useState("");
+  const [nb_CP,setNbCP]=useState(""); const [nb_Country,setNbCountry]=useState("España");
+  const nTotal = 99 + (nLawyer ? 79 : 0);
+
+  const handleNLogo = e => { const f=e.target.files[0]; if(f){const r=new FileReader();r.onload=ev=>setNLogo(ev.target.result);r.readAsDataURL(f);} };
+  const updNOpp = (id,k,v) => setNOpps(os=>os.map(o=>o.id===id?{...o,[k]:v}:o));
+  const togNOppCls = (id,n) => setNOpps(os=>os.map(o=>o.id===id?{...o,classes:o.classes.includes(n)?o.classes.filter(x=>x!==n):[...o.classes,n]}:o));
+  const handleNOppLogo = (id,e) => { const f=e.target.files[0]; if(f){const r=new FileReader();r.onload=ev=>updNOpp(id,"logoPreview",ev.target.result);r.readAsDataURL(f);} };
+  const toggleAbsGround = (gid) => setNAbsoluteGrounds(prev => prev.includes(gid) ? prev.filter(x=>x!==gid) : [...prev,gid]);
+
   const handleVLogo = e => { const f=e.target.files[0]; if(f){const r=new FileReader();r.onload=ev=>setVLogo(ev.target.result);r.readAsDataURL(f);} };
   const handleVExcel = (e) => {
     const file = e.target.files?.[0];
@@ -502,6 +542,8 @@ export default function App() {
   const dJur = JURS[dOffice]||JURS.default;
   const oOfficeLabel = OFFICES.find(o=>o.code===oOffice)?.label||oOffice;
   const oJur = JURS[oOffice]||JURS.default;
+  const nOfficeLabel = OFFICES.find(o=>o.code===nOffice)?.label||nOffice;
+  const nJur = JURS[nOffice]||JURS.default;
 
   /* ── STYLE FILE (multi-doc) ── */
   const handleStyleFile = async (e) => {
@@ -707,20 +749,16 @@ Responde ÚNICAMENTE con el siguiente JSON, sin texto fuera del JSON:
     try {
       const s = savedFormRef.current || {};
       const _vName = s.vName || vName;
-      const _vOffice = s.vOffice || vOffice;
       const _vClasses = s.vClasses || vClasses;
       const _vExcelData = s.vExcelData || vExcelData;
       const _vEmail = s.vEmail || vEmail;
       const _vLawyer = s.vLawyer !== undefined ? s.vLawyer : vLawyer;
-      const _vLogo = s.vLogo || vLogo;
       savedFormRef.current = null;
-      const _vOfficeLabel = OFFICES.find(o=>o.code===_vOffice)?.label||_vOffice;
 
       const prompt = `Eres un abogado especialista en propiedad industrial. Te proporciono:
-1. La marca que se desea registrar${_vName ? `: "${_vName}"` : " (marca puramente figurativa — ver imagen adjunta)"}${_vLogo ? (_vName ? " (marca mixta — ver imagen adjunta)" : "") : ""}
+1. La marca que se desea registrar: "${_vName}"
 2. Clases de Niza solicitadas: ${_vClasses.length ? _vClasses.map(c=>"Clase "+c).join(", ") : "—"}
-3. Oficina: ${_vOfficeLabel}
-4. Un archivo con los resultados de busqueda de anterioridades (datos a continuacion)
+3. Un archivo con los resultados de busqueda de anterioridades (datos a continuacion). Los territorios y oficinas se deducen del propio Excel.
 
 Antes de analizar, identifica el tipo de marca:
 
@@ -755,13 +793,14 @@ Usa exclusivamente estos cinco niveles cualitativos:
 
 ESTRUCTURA DEL INFORME:
 
-Asunto: Informe de Viabilidad Registral — ${_vName || "[marca figurativa]"} | Clases ${_vClasses.join(", ")}
+Asunto: Informe de Viabilidad Registral — ${_vName} | Clases ${_vClasses.join(", ")}
 
 1. OBJETO DEL INFORME (max. 5 lineas)
 - Tipo de marca, signo, clases solicitadas, total de registros analizados y activos, territorios cubiertos
 - Una frase sobre la distintividad intrinseca del signo
 
 2. VALORACION GLOBAL
+Empieza con el nivel de riesgo global en MAYUSCULAS y negrita, destacado visualmente (ej: **RIESGO GLOBAL: MEDIO**). Debe ser muy visible y claro.
 Tabla de 5 filas con: nivel de riesgo global, factor determinante, mayor obstaculo, territorios mas problematicos y clase con menor riesgo.
 Cierra con una linea de interpretacion: que significa ese nivel en terminos practicos.
 
@@ -795,16 +834,7 @@ ESTILO Y FORMATO:
 ${_vExcelData || "(sin datos)"}
 --- FIN DATOS ---`;
 
-      let userContent;
-      const vLogoBlock = dataUrlToImageBlock(_vLogo);
-      if (vLogoBlock) {
-        userContent = [
-          vLogoBlock,
-          { type:"text", text: "IMAGEN DE LA MARCA A EVALUAR (arriba).\n\n" + prompt }
-        ];
-      } else {
-        userContent = prompt;
-      }
+      const userContent = prompt;
 
       const txt = await callClaude(
         `Eres un abogado senior especializado en propiedad industrial con amplia experiencia en busquedas de anterioridades y evaluacion de viabilidad registral de marcas. Redactas informes ejecutivos de viabilidad registral en espanol formal. Estructuras con apartados claros, tablas y niveles de riesgo cualitativos. Nunca usas ### ni ##. Usas **negrita** para terminos importantes y *cursiva* para denominaciones de marcas.`,
@@ -818,8 +848,8 @@ ${_vExcelData || "(sin datos)"}
           if(line.startsWith(">")) return `<blockquote style="border-left:3px solid #999;padding:6px 12px;color:#555;">${h.replace(/^>\s?/,"")}</blockquote>`;
           return `<p>${h}</p>`;
         }).join("");
-        sendResultEmail(_vEmail, "viability", _vName||"[figurativa]", emailHtml);
-        sendAdminNotification("viability", _vName||"[figurativa]", _vEmail, emailHtml, !!_vLawyer);
+        sendResultEmail(_vEmail, "viability", _vName, emailHtml);
+        sendAdminNotification("viability", _vName, _vEmail, emailHtml, !!_vLawyer);
       }
     } catch { setResult("⚠️ Error de conexion. Por favor, intentelo de nuevo."); }
     finally { setLoading(false); }
@@ -1079,6 +1109,230 @@ ${_oOffice==="OEPM"?`   - Guía de Examen OEPM: criterios de evaluación de simi
     finally { setLoading(false); }
   };
 
+  /* ── NULLITY GENERATE ── */
+  const generateNullity = async () => {
+    setLoading(true); setLoadMsg("Generando escrito de nulidad…");
+    try {
+      const s = savedFormRef.current || {};
+      const _nGrounds = s.nGrounds || nGrounds;
+      const _nName = s.nName || nName;
+      const _nExp = s.nExp || nExp;
+      const _nPartyName = s.nPartyName || nPartyName;
+      const _nRegDate = s.nRegDate || nRegDate;
+      const _nOffice = s.nOffice || nOffice;
+      const _nClasses = s.nClasses || nClasses;
+      const _nProds = s.nProds || nProds;
+      const _nOpps = s.nOpps || nOpps;
+      const _nAbsoluteGrounds = s.nAbsoluteGrounds || nAbsoluteGrounds;
+      const _nEmail = s.nEmail || nEmail;
+      const _nLawyer = s.nLawyer!==undefined ? s.nLawyer : nLawyer;
+      const _nLang = s.nLang || nLang;
+      const _nOfficeLabel = OFFICES.find(o=>o.code===_nOffice)?.label||_nOffice;
+      const _nJur = JURS[_nOffice]||JURS.default;
+      const _styleDocs = s.styleDocs || styleDocs;
+      const _refDocs = s.refDocs || refDocs;
+      savedFormRef.current = null;
+
+      const now = new Date();
+      const targetMark = `MARCA REGISTRADA OBJETO DE LA ACCION DE NULIDAD:
+- ${_nName ? `Denominación: "${_nName}"` : "Marca puramente figurativa (sin denominación — ver imagen adjunta)"}  N.º registro/expediente: ${_nExp||"—"}${_nPartyName?`\n- Titular registral: ${_nPartyName}`:""}
+- Fecha de registro: ${_nRegDate||"—"}
+- Clases: ${_nClasses.length?_nClasses.map(c=>`Clase ${c}`).join(", "):"—"}
+- Productos/Servicios: ${_nProds||"—"}
+- Oficina: ${_nOfficeLabel} / Jurisdicción: ${_nJur}`;
+
+      let groundsSection = "";
+      if(_nGrounds==="relative"){
+        const oppsTxt = _nOpps.map((op,i)=>{
+          const yearsOld = op.regDate ? Math.floor((now - new Date(op.regDate)) / (365.25*24*60*60*1000)) : null;
+          const oppType = op.logoPreview && op.name ? "Mixta" : op.logoPreview ? "Figurativa" : "Denominativa";
+          return `
+Marca Anterior (derecho del solicitante de nulidad) ${i+1}:
+- ${op.name ? `Denominación: "${op.name}"` : "Marca puramente figurativa (sin denominación — ver imagen adjunta)"}  Expediente: ${op.expediente||"—"}${op.titularName?`\n- Titular: ${op.titularName}`:""}
+- Tipo: ${oppType}
+- Fecha de registro: ${op.regDate||"—"}${yearsOld!==null?` (antigüedad: ${yearsOld} años)`:""}${op.territory?`\n- Territorio de protección: ${op.territory}`:""}
+- Clases: ${op.classes.length?op.classes.map(c=>`Clase ${c}`).join(", "):"—"}
+- Productos: ${op.products||"—"}${op.isTradeName?`\n- DERECHO ANTERIOR: NOMBRE COMERCIAL (usado en el tráfico económico)`:""}${op.wellKnown?`\n- MARCA NOTORIAMENTE CONOCIDA / RENOMBRADA: SÍ${op.wellKnownTerritory?` (territorio de notoriedad: ${op.wellKnownTerritory})`:""}`:""}`;
+        }).join("\n");
+
+        const hasTradeName = _nOpps.some(op => op.isTradeName);
+        const hasWellKnown = _nOpps.some(op => op.wellKnown);
+
+        groundsSection = `TIPO DE ACCION: NULIDAD POR CAUSAS RELATIVAS (derechos anteriores)
+
+${targetMark}
+
+MARCAS ANTERIORES DEL SOLICITANTE DE NULIDAD (base de la acción):
+${oppsTxt}
+
+FUNDAMENTO JURIDICO:
+${_nOffice==="OEPM"?`- Art. 52 de la Ley 17/2001 de Marcas: nulidad relativa por conflicto con derechos anteriores
+- Art. 6.1.b: riesgo de confusión con marca anterior
+- Art. 7 y 8: marcas notorias y renombradas
+- Art. 9: legitimación para solicitar la nulidad`:`- Art. 60 del Reglamento (UE) 2017/1001 (RMUE): causas de nulidad relativa
+- Art. 8.1.b: riesgo de confusión con marca anterior
+- Art. 8.5: marcas de renombre
+- Art. 63: legitimación activa`}
+
+La acción de nulidad se basa en que la marca registrada es idéntica o confusamente similar a los derechos anteriores del solicitante, y genera riesgo de confusión en el público relevante.${hasTradeName?`\n\nNOMBRE COMERCIAL: Uno o más derechos anteriores es un nombre comercial. Fundamenta en ${_nOffice==="OEPM"?"art. 6.2.d y 9.1.d Ley 17/2001":"art. 8.4 RMUE"}.`:""}${hasWellKnown?`\n\nMARCA NOTORIA/RENOMBRADA: Una o más marcas son notorias. Fundamenta en ${_nOffice==="OEPM"?"arts. 7 y 8 Ley 17/2001":"art. 8.5 RMUE"}. Incluye sección detallada de prueba de notoriedad con datos reales.`:""}`;
+      } else {
+        const selectedGrounds = _nAbsoluteGrounds.map(gid => ABS_GROUNDS.find(g=>g.id===gid)?.label||gid);
+
+        groundsSection = `TIPO DE ACCION: NULIDAD POR CAUSAS ABSOLUTAS (invalidez intrínseca)
+
+${targetMark}
+
+CAUSAS ABSOLUTAS INVOCADAS:
+${selectedGrounds.map((g,i)=>`${i+1}. ${g}`).join("\n")}
+
+FUNDAMENTO JURIDICO:
+${_nOffice==="OEPM"?`- Art. 51 de la Ley 17/2001 de Marcas: nulidad absoluta
+- Art. 5: prohibiciones absolutas de registro
+- Art. 5.1.b: signos que carezcan de carácter distintivo
+- Art. 5.1.c: signos descriptivos
+- Art. 5.1.d: signos genéricos
+- Art. 5.1.e: signos contrarios al orden público
+- Art. 5.1.f: signos engañosos
+- Art. 5.1.g: emblemas y signos oficiales protegidos
+- Art. 5.1.h: indicaciones geográficas protegidas
+- Art. 51.1.b: solicitud de mala fe`:`- Art. 59 del Reglamento (UE) 2017/1001 (RMUE): causas de nulidad absoluta
+- Art. 7: motivos de denegación absolutos
+- Art. 7.1.b: falta de carácter distintivo
+- Art. 7.1.c: signos descriptivos
+- Art. 7.1.d: signos genéricos
+- Art. 7.1.f: contrarios al orden público
+- Art. 7.1.g: signos engañosos
+- Art. 7.1.h: emblemas y signos oficiales
+- Art. 7.1.j: indicaciones geográficas protegidas
+- Art. 59.1.b: solicitud de mala fe`}
+
+La acción de nulidad se fundamenta en que la marca nunca debió haber sido registrada al concurrir una o varias de las prohibiciones absolutas indicadas.`;
+      }
+
+      // Style docs
+      const styleTextDocs = _styleDocs.filter(d => !d.isPdf && d.text);
+      const stylePdfDocs = _styleDocs.filter(d => d.isPdf && d.b64);
+      const styleSection = _styleDocs.length > 0
+        ? "\n\nIMITACIÓN DE ESTILO: El cliente ha adjuntado " + _styleDocs.length + " documento(s) modelo. Analiza detenidamente su estructura, tono, nivel de formalidad, forma de construir los argumentos y cualquier rasgo estilístico. Reproduce ese estilo fielmente en el escrito."
+          + (styleTextDocs.length > 0 ? styleTextDocs.map((d,i)=>`\n\n--- DOCUMENTO MODELO ${i+1}: ${d.name} ---\n${d.text.slice(0,4000)}${d.text.length>4000?"\n[...]":""}\n--- FIN DOCUMENTO MODELO ${i+1} ---`).join("") : "")
+        : "";
+
+      // Reference documents section
+      const refTextDocs = _refDocs.filter(d => !d.isPdf && d.text);
+      const refPdfDocs = _refDocs.filter(d => d.isPdf && d.b64);
+      const refTextSection = refTextDocs.length > 0
+        ? "\n\nDOCUMENTOS DE REFERENCIA: El cliente ha adjuntado los siguientes documentos de referencia. DEBES consultarlos, citar partes relevantes y aplicar su contenido al escrito:\n" + refTextDocs.map((d,i)=>`\n--- DOCUMENTO ${i+1}: ${d.name} ---\n${d.text.slice(0,6000)}${d.text.length>6000?"\n[...]":""}\n--- FIN DOCUMENTO ${i+1} ---`).join("\n")
+        : "";
+      const refPdfPromptNote = refPdfDocs.length > 0
+        ? `\n\nDOCUMENTOS PDF DE REFERENCIA: Se adjuntan ${refPdfDocs.length} documento(s) PDF como referencia. Analiza su contenido detenidamente y aplica la jurisprudencia, normativa o directrices que contengan al escrito.`
+        : "";
+
+      const langMap = {es:"español",en:"inglés (English)",fr:"francés (Français)"};
+      const langInstr = _nLang!=="es" ? `\n\nIDIOMA: Redacta el escrito COMPLETO en ${langMap[_nLang]}. Toda la argumentación, encabezados, citas y conclusiones deben estar en ${langMap[_nLang]}.` : "";
+
+      const qualityBlock = `\n\nINSTRUCCIONES DE CALIDAD (OBLIGATORIAS):
+
+1. DATOS CONCRETOS: Utiliza TODOS los datos proporcionados. Cita las denominaciones exactas, números de registro, clases y productos en cada argumento.
+
+2. LEGISLACIÓN — Cita artículos CONCRETOS con su contenido resumido:
+${_nOffice==="OEPM"?`   - Ley 17/2001 de Marcas: arts. aplicables según el tipo de nulidad invocada
+   - Real Decreto 687/2002
+   - Directrices de Examen de la OEPM`:`   - Reglamento (UE) 2017/1001 (RMUE): arts. aplicables según el tipo de nulidad invocada
+   - Reglamento Delegado (UE) 2018/625
+   - Directrices de Examen EUIPO: Parte D (Anulación)`}
+   Transcribe literalmente fragmentos clave de los artículos que apliques.
+
+3. JURISPRUDENCIA — Cita MÍNIMO 5-8 resoluciones/sentencias REALES:
+   ${_nGrounds==="relative"?`- TJUE C-251/95 Sabel/Puma (apreciación global del riesgo de confusión)
+   - TJUE C-342/97 Lloyd Schuhfabrik (factores de similitud)
+   - TJUE C-120/04 Medion/Thomson (marcas compuestas)
+   - TJUE C-40/01 Ansul (uso efectivo)
+   - TJUE C-252/07 Intel (marcas de renombre)
+   - TJUE C-487/07 L'Oréal/Bellure (aprovechamiento indebido)`:`- TJUE C-108/97 y C-109/97 Chiemsee (signos descriptivos)
+   - TJUE C-299/99 Philips/Remington (formas funcionales)
+   - TJUE C-456/01 P y C-457/01 P Henkel (falta de distintividad)
+   - TJUE C-529/07 Lindt (mala fe)
+   - TJUE C-320/12 Malaysia Dairy (signos engañosos)
+   - TGUE T-122/99 Companyline (carácter descriptivo)`}
+   Cita las que sean relevantes y añade otras aplicables. Para cada cita, indica qué principio establece y cómo se aplica.
+
+4. DIRECTRICES OFICIALES — Cita secciones específicas de las Directrices:
+${_nOffice==="OEPM"?`   - Guía de Examen OEPM: criterios de evaluación aplicables a la nulidad`:`   - Directrices EUIPO Parte D: Anulación
+   - Directrices EUIPO Parte B: Examen (motivos absolutos)
+   - Directrices EUIPO Parte C: Oposición (motivos relativos aplicados a nulidad)`}
+
+5. ${_nGrounds==="relative"?`ANÁLISIS DETALLADO DE COMPARACIÓN:
+   a) Similitud fonética: descomposición silábica
+   b) Similitud visual: estructura gráfica
+   c) Similitud conceptual: significado evocado
+   d) Similitud de productos/servicios
+   e) Apreciación global: interdependencia de factores`:`ANÁLISIS DETALLADO DE CADA CAUSA ABSOLUTA INVOCADA:
+   Para cada causa, desarrolla un apartado completo con fundamentación legal, jurisprudencia y argumentación específica al signo registrado.`}
+
+6. EXTENSIÓN: Mínimo 2500 palabras. Escrito EXHAUSTIVO y profesional.
+
+7. NO INCLUIR FIRMA ni datos de contacto ficticios. Termina con SUPLICO/SOLICITO.
+
+8. ESTRUCTURA: Encabezamiento formal de la solicitud de nulidad, antecedentes de hecho, fundamentos de derecho, análisis detallado, conclusiones y solicitud (SUPLICO).`;
+
+      const mainPrompt = `Eres un abogado senior especializado en propiedad industrial con 20 años de experiencia ante la ${_nOffice==="OEPM"?"OEPM":"EUIPO"}. Redacta un ESCRITO DE SOLICITUD DE NULIDAD ${_nGrounds==="relative"?"POR CAUSAS RELATIVAS":"POR CAUSAS ABSOLUTAS (INVALIDEZ)"} profesional y exhaustivo conforme a la legislación ${_nJur}.${styleSection}${refTextSection}${refPdfPromptNote}${langInstr}${qualityBlock}
+
+${groundsSection}
+
+Estructura en números romanos (I, II, III...) con subapartados. **Negrita** términos jurídicos, *cursiva* denominaciones, > para citas literales de artículos o sentencias. Redacta el escrito COMPLETO, extenso y fundamentado:`;
+
+      // Collect logo image blocks
+      const _nLogoVal = s.nLogo || nLogo;
+      const mainLogoBlock = dataUrlToImageBlock(_nLogoVal);
+      const oppLogoBlocks = _nGrounds==="relative" ? _nOpps.map((op,i) => {
+        const block = dataUrlToImageBlock(op.logoPreview);
+        return block ? { block, label: `Logo marca anterior ${i+1}: "${op.name}"` } : null;
+      }).filter(Boolean) : [];
+
+      let userContent;
+      const hasMediaBlocks = stylePdfDocs.length > 0 || refPdfDocs.length > 0 || mainLogoBlock || oppLogoBlocks.length > 0;
+      if (hasMediaBlocks) {
+        const blocks = [];
+        stylePdfDocs.forEach(d => {
+          blocks.push({ type:"document", source:{ type:"base64", media_type:"application/pdf", data:d.b64 } });
+        });
+        refPdfDocs.forEach(d => {
+          blocks.push({ type:"document", source:{ type:"base64", media_type:"application/pdf", data:d.b64 } });
+        });
+        if (mainLogoBlock) {
+          blocks.push({ type:"text", text:`IMAGEN DEL LOGO DE LA MARCA REGISTRADA OBJETO DE NULIDAD: "${_nName}"` });
+          blocks.push(mainLogoBlock);
+        }
+        oppLogoBlocks.forEach(({block, label}) => {
+          blocks.push({ type:"text", text:label });
+          blocks.push(block);
+        });
+        blocks.push({ type:"text", text:mainPrompt });
+        userContent = blocks;
+      } else {
+        userContent = mainPrompt;
+      }
+
+      const txt = await callClaude(
+        `Eres un abogado senior especializado en propiedad industrial con 20 años de experiencia práctica ante la OEPM y la EUIPO. Redactas escritos legales de nulidad e invalidez de marcas ${_nLang==="es"?"en español":_nLang==="en"?"in English":"en français"} con máxima precisión técnica y rigor jurídico. SIEMPRE citas artículos concretos de la legislación aplicable, jurisprudencia real del TJUE y TGUE con números de asunto, y secciones específicas de las Directrices de Examen. Estructuras con apartados en números romanos y subapartados. Usas **negrita** para términos jurídicos, *cursiva* para nombres de marcas, > para citas literales. Nunca usas ### ni ##.`,
+        userContent
+      );
+      setResult(txt);
+      if(_nEmail && txt && !txt.startsWith("⚠️")){
+        const emailHtml = txt.split("\n").map(line=>{
+          if(!line.trim()) return "<br/>";
+          let h=line.replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/\*(.+?)\*/g,"<em>$1</em>");
+          if(line.startsWith(">")) return `<blockquote style="border-left:3px solid #999;padding:6px 12px;color:#555;">${h.replace(/^>\s?/,"")}</blockquote>`;
+          if(/^(I|II|III|IV|V|VI|VII|VIII|IX|X)\.\s/.test(line)) return `<h3>${h}</h3>`;
+          return `<p>${h}</p>`;
+        }).join("");
+        sendResultEmail(_nEmail, "nullity", _nName, emailHtml);
+        sendAdminNotification("nullity", _nName, _nEmail, emailHtml, !!_nLawyer);
+      }
+    } catch { setResult("⚠️ Error de conexión. Por favor, inténtelo de nuevo."); }
+    finally { setLoading(false); }
+  };
+
   /* ── EMAIL ── */
   const sendResultEmail = async (email, service, markName, resultHtml) => {
     try {
@@ -1091,9 +1345,10 @@ ${_oOffice==="OEPM"?`   - Guía de Examen OEPM: criterios de evaluación de simi
 
   const sendAdminNotification = async (service, markName, clientEmail, resultHtml, isReview=false) => {
     try {
+      const svcLabel = service==="distinctiveness"?"Distintividad":service==="viability"?"Viabilidad Registral":service==="nullity"?"Nulidad/Invalidez":"Oposicion/Defensa";
       const headerHtml = isReview
-        ? `<div style="background:#fff3e0;padding:16px;border-radius:8px;border-left:4px solid #E8845C;margin-bottom:20px;"><strong>NUEVO ENCARGO — REVISION PROFESIONAL</strong><br/>Cliente: <strong>${clientEmail}</strong><br/>Servicio: <strong>${service==="distinctiveness"?"Distintividad":service==="viability"?"Viabilidad Registral":"Oposicion/Defensa"}</strong><br/>Marca: <strong>${markName}</strong><br/>Plazo: <strong>48 horas habiles</strong></div><hr style="margin:20px 0;"/><h3>Resultado IA generado (base para revision):</h3>`
-        : `<div style="background:#e8f5e9;padding:16px;border-radius:8px;border-left:4px solid #4caf50;margin-bottom:20px;"><strong>NUEVO ENCARGO — Sin revision</strong><br/>Cliente: <strong>${clientEmail}</strong><br/>Servicio: <strong>${service==="distinctiveness"?"Distintividad":service==="viability"?"Viabilidad Registral":"Oposicion/Defensa"}</strong><br/>Marca: <strong>${markName}</strong></div><hr style="margin:20px 0;"/><h3>Resultado IA generado:</h3>`;
+        ? `<div style="background:#fff3e0;padding:16px;border-radius:8px;border-left:4px solid #E8845C;margin-bottom:20px;"><strong>NUEVO ENCARGO — REVISION PROFESIONAL</strong><br/>Cliente: <strong>${clientEmail}</strong><br/>Servicio: <strong>${svcLabel}</strong><br/>Marca: <strong>${markName}</strong><br/>Plazo: <strong>48 horas habiles</strong></div><hr style="margin:20px 0;"/><h3>Resultado IA generado (base para revision):</h3>`
+        : `<div style="background:#e8f5e9;padding:16px;border-radius:8px;border-left:4px solid #4caf50;margin-bottom:20px;"><strong>NUEVO ENCARGO — Sin revision</strong><br/>Cliente: <strong>${clientEmail}</strong><br/>Servicio: <strong>${svcLabel}</strong><br/>Marca: <strong>${markName}</strong></div><hr style="margin:20px 0;"/><h3>Resultado IA generado:</h3>`;
       await fetch("/api/send-email", {
         method:"POST", headers:{"Content-Type":"application/json"},
         body:JSON.stringify({
@@ -1131,9 +1386,21 @@ ${_oOffice==="OEPM"?`   - Guía de Examen OEPM: criterios de evaluación de simi
     } else if(svc==="viability"){
       try {
         const saveVLogo = vLogo && vLogo.length < 500000 ? vLogo : null;
-        localStorage.setItem("traidemark_form", JSON.stringify({svc,vName,vOffice,vClasses,vExcelData,vExcelName,vEmail,vLawyer,vLogo:saveVLogo}));
+        localStorage.setItem("traidemark_form", JSON.stringify({svc,vName,vClasses,vExcelData,vExcelName,vEmail,vLawyer}));
       } catch(e) {
-        localStorage.setItem("traidemark_form", JSON.stringify({svc,vName,vOffice,vClasses,vExcelData,vExcelName,vEmail,vLawyer,vLogo:null}));
+        localStorage.setItem("traidemark_form", JSON.stringify({svc,vName,vClasses,vExcelData,vExcelName,vEmail,vLawyer}));
+      }
+    } else if(svc==="nullity"){
+      try {
+        const saveDocArray = (arr) => arr.map(d => ({
+          name: d.name, isPdf: d.isPdf, text: d.text,
+          b64: d.isPdf && d.b64 && d.b64.length < 1500000 ? d.b64 : ""
+        }));
+        const saveCL = clientLogo && clientLogo.length < 500000 ? clientLogo : null;
+        localStorage.setItem("traidemark_form", JSON.stringify({svc,nGrounds,nName,nExp,nPartyName,nRegDate,nOffice,nClasses,nProds,nLogo,nOpps,nAbsoluteGrounds,nEmail,nLawyer,nLang,styleDocs:saveDocArray(styleDocs),refDocs:saveDocArray(refDocs),clientLogo:saveCL}));
+      } catch(e) {
+        const minDocArray = (arr) => arr.map(d => ({ name: d.name, isPdf: d.isPdf, text: d.text, b64: "" }));
+        localStorage.setItem("traidemark_form", JSON.stringify({svc,nGrounds,nName,nExp,nPartyName,nRegDate,nOffice,nClasses,nProds,nLogo,nOpps,nAbsoluteGrounds,nEmail,nLawyer,nLang,styleDocs:minDocArray(styleDocs),refDocs:minDocArray(refDocs),clientLogo:null}));
       }
     }
   };
@@ -1224,17 +1491,37 @@ ${_oOffice==="OEPM"?`   - Guía de Examen OEPM: criterios de evaluación de simi
             setTimeout(()=>generateOpposition(),200);
           } else if(saved && svc==="viability"){
             if(saved.vName) setVName(saved.vName);
-            if(saved.vOffice) setVOffice(saved.vOffice);
             if(saved.vClasses) setVClasses(saved.vClasses);
             if(saved.vExcelData) setVExcelData(saved.vExcelData);
             if(saved.vExcelName) setVExcelName(saved.vExcelName);
             if(saved.vEmail) setVEmail(saved.vEmail);
             if(saved.vLawyer!==undefined) setVLawyer(saved.vLawyer);
-            if(saved.vLogo) setVLogo(saved.vLogo);
             savedFormRef.current = saved;
             setService("viability"); setVStep(3);
             setLoading(false);
             setTimeout(()=>generateViability(),200);
+          } else if(saved && svc==="nullity"){
+            if(saved.nGrounds) setNGrounds(saved.nGrounds);
+            if(saved.nName) setNName(saved.nName);
+            if(saved.nExp) setNExp(saved.nExp);
+            if(saved.nPartyName) setNPartyName(saved.nPartyName);
+            if(saved.nRegDate) setNRegDate(saved.nRegDate);
+            if(saved.nOffice) setNOffice(saved.nOffice);
+            if(saved.nClasses) setNClasses(saved.nClasses);
+            if(saved.nProds) setNProds(saved.nProds);
+            if(saved.nLogo) setNLogo(saved.nLogo);
+            if(saved.nOpps) setNOpps(saved.nOpps);
+            if(saved.nAbsoluteGrounds) setNAbsoluteGrounds(saved.nAbsoluteGrounds);
+            if(saved.nEmail) setNEmail(saved.nEmail);
+            if(saved.nLawyer!==undefined) setNLawyer(saved.nLawyer);
+            if(saved.nLang) setNLang(saved.nLang);
+            if(saved.styleDocs) setStyleDocs(saved.styleDocs);
+            if(saved.refDocs) setRefDocs(saved.refDocs);
+            if(saved.clientLogo) setClientLogo(saved.clientLogo);
+            savedFormRef.current = saved;
+            setService("nullity"); setNStep(4);
+            setLoading(false);
+            setTimeout(()=>generateNullity(),200);
           } else { setLoading(false); alert("Pago confirmado. Por favor, vuelva a rellenar el formulario y seleccione Bizum o PayPal para evitar la recarga."); }
         } else { setLoading(false); alert("El pago no se ha completado. Inténtelo de nuevo."); }
       } catch(err){ setLoading(false); alert("Error verificando el pago."); }
@@ -1262,7 +1549,7 @@ ${_oOffice==="OEPM"?`   - Guía de Examen OEPM: criterios de evaluación de simi
     });
   };
 
-  const goHome = () => { setService("home"); setResult(null); setDisData(null); setDStep(1); setOStep(1); setORole(""); setOPartyName(""); setOFilingDate(""); setOTerritory(""); setOWellKnown(false); setOWellKnownTerritory(""); setRefDocs([]); clearStyle(); setClientLogo(null); setOppDoc(null); setVStep(1); setVName(""); setVLogo(null); setVOffice(""); setVClasses([]); setVExcelData(null); setVExcelName(""); };
+  const goHome = () => { setService("home"); setResult(null); setDisData(null); setDStep(1); setOStep(1); setORole(""); setOPartyName(""); setOFilingDate(""); setOTerritory(""); setOWellKnown(false); setOWellKnownTerritory(""); setRefDocs([]); clearStyle(); setClientLogo(null); setOppDoc(null); setVStep(1); setVName(""); setVLogo(null); setVOffice(""); setVClasses([]); setVExcelData(null); setVExcelName(""); setNStep(1); setNGrounds(""); setNOpps([emptyOpp()]); setNAbsoluteGrounds([]); };
 
   /* ── BILLING COMPONENT ── */
   const BillingFields = ({n,sN,nif,sNif,addr,sAddr,city,sCity,cp,sCP,country,sCountry}) => (
@@ -1392,16 +1679,15 @@ ${_oOffice==="OEPM"?`   - Guía de Examen OEPM: criterios de evaluación de simi
         {service==="home"&&(
           <div>
             <div className="hero">
-              <img src={LOGO_URI} alt="trAIdemark" className="hero-logo"/>
               <div className="hero-pill">✦ Propiedad intelectual asistida por IA</div>
-              <h1 className="hero-title">Informes y escritos para sus <em>procedimientos de marcas</em></h1>
-              <p className="hero-sub">Analice la distintividad intrínseca de su denominación antes de solicitar el registro ante la OEPM (España) o la EUIPO (Unión Europea), o genere escritos de oposición y defensa con jurisprudencia real — adaptados a su propia forma de redactar.</p>
+              <h1 className="hero-title">Todo lo que hace un abogado de marcas,<br/><em>sin el abogado.</em></h1>
+              <p className="hero-sub">Informes de distintividad, análisis de anterioridades y escritos de oposición, nulidad y recurso con precisión jurídica real. Para titulares de marcas o despachos y departamentos legales que facturan por resolver problemas, no por redactarlos.</p>
               <div className="hero-rule"/>
               <p className="hero-note">Los documentos generados son orientativos y no sustituyen el asesoramiento de un profesional habilitado en propiedad industrial.</p>
             </div>
             <div className="services">
-              <div className="services-title">Seleccione el servicio</div>
-              <div className="services-sub">Tres herramientas especializadas para las necesidades más habituales en la práctica marcaria.</div>
+              <div className="services-title">Qué necesitas</div>
+              <div className="services-sub">Cuatro herramientas especializadas para las necesidades más habituales en la práctica marcaria.</div>
               <div className="services-grid">
                 <div className="svc-card" onClick={()=>{if(!discAccepted){setShowDisc(true);return;}setService("distinctiveness");}}>
                   <div className="svc-icon">🔍</div>
@@ -1425,7 +1711,7 @@ ${_oOffice==="OEPM"?`   - Guía de Examen OEPM: criterios de evaluación de simi
                       <span className="svc-tag">Riesgo por clase</span>
                       <span className="svc-tag">Recomendaciones</span>
                     </div>
-                    <div className="svc-desc">Cargue los resultados de busqueda de anterioridades (Excel) y obtenga un informe profesional de viabilidad registral con valoracion de riesgo, antecedentes destacados y recomendaciones estrategicas.</div>
+                    <div className="svc-desc">Cargue los resultados de su busqueda de anterioridades (Excel) y obtenga un informe profesional de viabilidad registral con valoracion de riesgo, antecedentes destacados y recomendaciones estrategicas.</div>
                   </div>
                   <div className="svc-footer"><span className="svc-price">Desde 39 €</span><span className="svc-arrow">→</span></div>
                 </div>
@@ -1442,6 +1728,19 @@ ${_oOffice==="OEPM"?`   - Guía de Examen OEPM: criterios de evaluación de simi
                     <div className="svc-desc">Escrito de contestación a una oposición recibida o escrito de oposición frente a una nueva solicitud. Opcionalmente, cargue un documento Word o PDF propio para que el escrito imite su estilo y forma de redacción habitual.</div>
                   </div>
                   <div className="svc-footer"><span className="svc-price">Desde 69 €</span><span className="svc-arrow">→</span></div>
+                </div>
+                <div className="svc-card" onClick={()=>{if(!discAccepted){setShowDisc(true);return;}setService("nullity");}}>
+                  <div className="svc-icon">📋</div>
+                  <div>
+                    <div className="svc-title">Nulidad e invalidez</div>
+                    <div className="svc-tags" style={{marginTop:"8px",marginBottom:"10px"}}>
+                      <span className="svc-tag">Causas relativas</span>
+                      <span className="svc-tag">Causas absolutas</span>
+                      <span className="svc-tag">OEPM · EUIPO</span>
+                    </div>
+                    <div className="svc-desc">Solicitud de nulidad o invalidez de una marca registrada por causas relativas (derechos anteriores) o absolutas (carencia de distintividad, signos engañosos, mala fe). Redacción profesional con jurisprudencia aplicable.</div>
+                  </div>
+                  <div className="svc-footer"><span className="svc-price">Desde 99 €</span><span className="svc-arrow">→</span></div>
                 </div>
               </div>
             </div>
@@ -1638,25 +1937,8 @@ ${_oOffice==="OEPM"?`   - Guía de Examen OEPM: criterios de evaluación de simi
                     <div className="card-title">Datos de la marca a evaluar</div>
                     <div className="card-sub">Introduzca la marca que desea registrar y suba el archivo Excel con los resultados de busqueda de anterioridades.</div>
                   </div>
-                  <div className="frow">
-                    <div className="fg"><label className="flabel">Denominacion {vLogo?<span style={{fontSize:"11px",fontWeight:400,color:"var(--tm)"}}>(opcional si es figurativa)</span>:<span>*</span>}</label><input className="finput" placeholder="ej. GESAN (dejar vacio si es puramente figurativa)" value={vName} onChange={e=>setVName(e.target.value)}/></div>
-                    <div className="fg"><label className="flabel">Oficina <span>*</span></label>
-                      <select className="fselect" value={vOffice} onChange={e=>setVOffice(e.target.value)}>
-                        <option value="">Seleccione oficina…</option>
-                        {OFFICES.map(o=><option key={o.code} value={o.code}>{o.label}</option>)}
-                      </select>
-                    </div>
-                  </div>
                   <div className="frow one">
-                    <div className="fg"><label className="flabel">Logo / marca figurativa (opcional)</label>
-                      <div style={{display:"flex",alignItems:"center",gap:"12px"}}>
-                        <div className="style-zone" style={{position:"relative",padding:"12px",flex:1}}>
-                          <input type="file" accept="image/*" onChange={handleVLogo} style={{position:"absolute",inset:0,opacity:0,cursor:"pointer"}}/>
-                          <div style={{fontSize:"13px",color:"var(--t2)"}}>📎 {vLogo?"Logo cargado — clic para cambiar":"Cargar imagen del logo"}</div>
-                        </div>
-                        {vLogo&&<><img src={vLogo} alt="Logo" style={{height:"40px",borderRadius:"4px",border:"1px solid var(--border)"}}/><button style={{background:"none",border:"none",color:"var(--t3)",cursor:"pointer",fontSize:"16px"}} onClick={()=>setVLogo(null)}>✕</button></>}
-                      </div>
-                    </div>
+                    <div className="fg"><label className="flabel">Denominacion <span>*</span></label><input className="finput" placeholder="ej. GESAN" value={vName} onChange={e=>setVName(e.target.value)}/></div>
                   </div>
                   <div className="slabel">Clases de Niza solicitadas <span>*</span></div>
                   <div className="chips-hint">Seleccione las clases que desea registrar · <span onClick={()=>setVClasses([])}>Deseleccionar todas</span></div>
@@ -1691,7 +1973,7 @@ ${_oOffice==="OEPM"?`   - Guía de Examen OEPM: criterios de evaluación de simi
                     )}
                   </div>
                 </div>
-                <div className="btn-row"><button className="btn-primary" disabled={(!vName.trim()&&!vLogo)||!vOffice||!vExcelData||!vClasses.length} onClick={()=>setVStep(2)}>Continuar →</button></div>
+                <div className="btn-row"><button className="btn-primary" disabled={!vName.trim()||!vExcelData||!vClasses.length} onClick={()=>setVStep(2)}>Continuar →</button></div>
               </>
             )}
 
@@ -1702,8 +1984,7 @@ ${_oOffice==="OEPM"?`   - Guía de Examen OEPM: criterios de evaluación de simi
                   <div className="slabel">Resumen</div>
                   <table className="stbl" style={{marginBottom:"18px"}}>
                     <tbody>
-                      <tr><td>Marca</td><td>{vName||"[figurativa]"}{vLogo?" + logo":""}</td></tr>
-                      <tr><td>Oficina</td><td>{OFFICES.find(o=>o.code===vOffice)?.label.split("—")[0].trim()}</td></tr>
+                      <tr><td>Marca</td><td>{vName}</td></tr>
                       <tr><td>Clases</td><td>{vClasses.map(c=>`Clase ${c}`).join(", ")}</td></tr>
                       <tr><td>Anterioridades</td><td>{vExcelName}</td></tr>
                     </tbody>
@@ -1764,7 +2045,7 @@ ${_oOffice==="OEPM"?`   - Guía de Examen OEPM: criterios de evaluación de simi
                 <div className="card-hdr" style={{marginBottom:"16px"}}>
                   <div className="card-title" style={{fontFamily:"'Playfair Display',serif",fontSize:"20px"}}>Informe de Viabilidad Registral</div>
                   <div style={{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap",marginTop:"8px"}}>
-                    <span style={{fontSize:"13px",color:"var(--t2)"}}>Marca: <strong>{vName||"[figurativa]"}</strong> · {OFFICES.find(o=>o.code===vOffice)?.label.split("—")[0].trim()}</span>
+                    <span style={{fontSize:"13px",color:"var(--t2)"}}>Marca: <strong>{vName}</strong> · Clases {vClasses.join(", ")}</span>
                   </div>
                   <div style={{display:"flex",gap:"6px",flexWrap:"wrap",marginTop:"6px"}}>
                     <span className="badge badge-orange">VIABILIDAD REGISTRAL</span>
@@ -1780,8 +2061,405 @@ ${_oOffice==="OEPM"?`   - Guía de Examen OEPM: criterios de evaluación de simi
                 </div>
                 <div className="btn-row">
                   <button className="btn-secondary" onClick={goHome}>Inicio</button>
-                  <button className="btn-primary" onClick={()=>{const txt=result||"";const htmlBody=txt.split("\n").map(line=>{if(!line.trim())return"";let clean=line.replace(/^#{1,4}\s+/,"");let h=clean.replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/\*(.+?)\*/g,"<em>$1</em>");if(clean.startsWith(">"))return`<blockquote style="border-left:3px solid #999;padding:4px 12px;margin:8px 0;color:#555;font-style:italic;">${h.replace(/^>\s?/,"")}</blockquote>`;if(line.match(/^#{1,4}\s/))return`<h2 style="font-size:13pt;color:#2a4365;margin:14px 0 4px;">${h}</h2>`;return`<p>${h}</p>`;}).join("");const logoHdr=clientLogo?`<div style="margin-bottom:16px;"><img src="${clientLogo}" style="max-height:45px;max-width:150px;" alt="Logo"/></div>`:"";const html=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><style>@page{margin:2.5cm 2cm;}body{font-family:Calibri,sans-serif;font-size:12pt;margin:0;text-align:justify;mso-line-height-rule:exactly;line-height:150%;}p{margin:0 0 8pt 0;text-align:justify;mso-line-height-rule:exactly;line-height:150%;}h2{border-bottom:1px solid #ddd;padding-bottom:4px;}strong{color:#1a365d;}blockquote{background:#f7f7f7;border-radius:4px;}</style></head><body>${logoHdr}${htmlBody}</body></html>`;const b=new Blob([html],{type:"application/msword;charset=utf-8"});const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;a.download=`Informe_Viabilidad_${(vName||"figurativa").replace(/\s/g,"_")}.doc`;a.click();URL.revokeObjectURL(u);}}>Descargar informe</button>
+                  <button className="btn-primary" onClick={()=>{
+                    const txt=result||"";
+                    const lines=txt.split("\n");
+                    let htmlBody="";
+                    let inTable=false;
+                    for(let i=0;i<lines.length;i++){
+                      const line=lines[i];
+                      if(!line.trim()){if(inTable){htmlBody+="</table>";inTable=false;}htmlBody+="<p>&nbsp;</p>";continue;}
+                      let clean=line.replace(/^#{1,4}\s+/,"");
+                      let h=clean.replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/\*(.+?)\*/g,"<em>$1</em>");
+                      if(clean.match(/^[━═─]{3,}/)){if(inTable){htmlBody+="</table>";inTable=false;}htmlBody+=`<hr style="border:none;border-top:2px solid #2a4365;margin:12pt 0;">`;continue;}
+                      if(clean.startsWith("|")&&clean.endsWith("|")){
+                        const cells=clean.split("|").filter((_,ci)=>ci>0&&ci<clean.split("|").length-1).map(c=>c.trim());
+                        if(cells.every(c=>c.match(/^[-:]+$/))){continue;}
+                        if(!inTable){htmlBody+=`<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%;font-size:11pt;margin:6pt 0;">`;inTable=true;}
+                        const isHdr=i>0&&lines[i+1]&&lines[i+1].trim().match(/^\|[\s\-:|]+\|$/);
+                        const tag=isHdr?"th":"td";
+                        const bg=isHdr?' style="background:#e8edf3;color:#1a1a1a;font-weight:bold;text-align:left;"':' style="text-align:left;vertical-align:top;color:#333;"';
+                        htmlBody+=`<tr>${cells.map(c=>`<${tag}${bg}>${c.replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/\*(.+?)\*/g,"<em>$1</em>")}</${tag}>`).join("")}</tr>`;
+                        continue;
+                      }
+                      if(inTable){htmlBody+="</table>";inTable=false;}
+                      if(line.match(/^#{1,4}\s/)||clean.match(/^\d+\.\s+[A-Z]{2,}/)){htmlBody+=`<h2 style="font-size:13pt;color:#2a4365;margin:16pt 0 6pt;border-bottom:1px solid #ccc;padding-bottom:4pt;">${h}</h2>`;continue;}
+                      if(clean.startsWith(">")){htmlBody+=`<p style="border-left:3px solid #2a4365;padding:4pt 12pt;margin:8pt 0;color:#555;font-style:italic;">${h.replace(/^>\s?/,"")}</p>`;continue;}
+                      if(clean.match(/^[-•]\s/)){htmlBody+=`<p style="margin:2pt 0 2pt 18pt;text-indent:-12pt;">${h}</p>`;continue;}
+                      htmlBody+=`<p>${h}</p>`;
+                    }
+                    if(inTable) htmlBody+="</table>";
+                    const today=new Date().toLocaleDateString("es-ES",{day:"2-digit",month:"long",year:"numeric"});
+                    const coverPage=`<div style="text-align:center;margin-top:120pt;"><p style="font-size:24pt;color:#2a4365;font-weight:bold;letter-spacing:1pt;">INFORME DE VIABILIDAD REGISTRAL</p><p style="font-size:10pt;color:#888;margin-top:6pt;">Generado por trAIdemark</p><br style="mso-special-character:line-break;page-break-before:always;"></div>`;
+                    const html=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><style>@page{margin:2.5cm 2.5cm;}body{font-family:Calibri,sans-serif;font-size:11pt;margin:0;text-align:justify;mso-line-height-rule:exactly;line-height:150%;color:#333;}p{margin:0 0 6pt 0;text-align:justify;mso-line-height-rule:exactly;line-height:150%;}h2{border-bottom:1px solid #ccc;padding-bottom:4pt;}strong{color:#1a365d;}table{page-break-inside:avoid;}</style></head><body>${coverPage}${htmlBody}</body></html>`;
+                    const b=new Blob([html],{type:"application/msword;charset=utf-8"});const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;a.download=`Informe_Viabilidad_${(vName||"marca").replace(/\s/g,"_")}.doc`;a.click();URL.revokeObjectURL(u);
+                  }}>Descargar informe</button>
                 </div>
+              </>
+            )}
+          </main>
+        )}
+
+        {/* ══ NULLITY ══ */}
+        {service==="nullity"&&(
+          <main className="main">
+            <div className="bc"><span className="bc-lnk" onClick={goHome}>Inicio</span><span className="bc-sep">›</span><span className="bc-cur">Nulidad e invalidez</span></div>
+            <div className="steps">
+              {[{n:1,l:"Tipo de acción"},{n:2,l:"Datos"},{n:3,l:"Pago"},{n:4,l:"Resultado"}].map((s,idx)=>(
+                <div key={s.n} className="step-item">
+                  {idx>0&&<div className={`step-conn ${nStep>idx?"done":""}`}/>}
+                  <div className="step-wrap">
+                    <div className={`step-dot ${nStep===s.n?"active":nStep>s.n?"done":""}`}>{nStep>s.n?"✓":s.n}</div>
+                    <div className={`step-lbl ${nStep===s.n?"active":nStep>s.n?"done":""}`}>{s.l}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* STEP 1 — Grounds type */}
+            {nStep===1&&(
+              <>
+                <div className="card">
+                  <div className="card-hdr"><div className="card-title">Tipo de acción de nulidad</div><div className="card-sub">Seleccione si la nulidad se basa en derechos anteriores (causas relativas) o en prohibiciones absolutas de registro (causas absolutas).</div></div>
+                  <div className="role-grid">
+                    {[
+                      {id:"relative",icon:"⚖️",name:"Causas relativas",desc:"Dispongo de derechos anteriores (marcas registradas, nombres comerciales) que entran en conflicto con la marca registrada que deseo anular. La acción se fundamenta en el riesgo de confusión con mis derechos previos."},
+                      {id:"absolute",icon:"🚫",name:"Causas absolutas",desc:"La marca registrada nunca debió concederse porque incurre en prohibiciones absolutas: falta de distintividad, carácter descriptivo o genérico, signo engañoso, contrario al orden público, mala fe, etc."},
+                    ].map(r=>(
+                      <div key={r.id} className={`role-card ${nGrounds===r.id?"sel":""}`} onClick={()=>setNGrounds(r.id)}>
+                        <div className="role-check"><div className="role-check-dot"/></div>
+                        <div className="role-icon">{r.icon}</div>
+                        <div className="role-name">{r.name}</div>
+                        <div className="role-desc">{r.desc}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="btn-row"><button className="btn-primary" disabled={!nGrounds} onClick={()=>setNStep(2)}>Continuar →</button></div>
+              </>
+            )}
+
+            {/* STEP 2 — Mark data */}
+            {nStep===2&&(
+              <>
+                <div className="card">
+                  <div className="card-hdr">
+                    <div className="card-title">Marca registrada objeto de la nulidad</div>
+                    <div className="card-sub">Datos de la marca registrada que desea anular o invalidar.</div>
+                  </div>
+                  <div className="frow">
+                    <div className="fg"><label className="flabel">Denominación {nLogo?<span style={{fontSize:"11px",fontWeight:400,color:"var(--tm)"}}>(opcional si es figurativa)</span>:<span>*</span>}</label><input className="finput" placeholder="ej. NOVA CAFE (dejar vacío si es puramente figurativa)" value={nName} onChange={e=>setNName(e.target.value)}/></div>
+                    <div className="fg"><label className="flabel">N.º registro / expediente</label><input className="finput" placeholder="ej. M4123456" value={nExp} onChange={e=>setNExp(e.target.value)}/></div>
+                  </div>
+                  <div className="frow">
+                    <div className="fg"><label className="flabel">Titular registral</label><input className="finput" placeholder="ej. Empresa S.L." value={nPartyName} onChange={e=>setNPartyName(e.target.value)}/></div>
+                    <div className="fg"><label className="flabel">Fecha de registro</label><input className="finput" type="date" value={nRegDate} onChange={e=>setNRegDate(e.target.value)}/></div>
+                  </div>
+                  <div className="frow">
+                    <div className="fg"><label className="flabel">Oficina <span>*</span></label>
+                      <select className="fselect" value={nOffice} onChange={e=>setNOffice(e.target.value)}>
+                        <option value="">— Seleccione la oficina —</option>
+                        {OFFICES.map(o=><option key={o.code} value={o.code}>{o.label}</option>)}
+                      </select>
+                    </div>
+                    <div className="fg"><label className="flabel">Idioma del escrito</label>
+                      <select className="fselect" value={nLang} onChange={e=>setNLang(e.target.value)}>
+                        <option value="es">Español</option>
+                        <option value="en">English</option>
+                        <option value="fr">Français</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="slabel">Logo</div>
+                  <div className="frow">
+                    <div className="fg"><label className="flabel">Logotipo (opcional)</label>
+                      <div className="logo-up"><input type="file" accept="image/*" onChange={handleNLogo}/>
+                        {nLogo?<img src={nLogo} alt="" className="logo-preview"/>:<div className="logo-up-txt"><strong>Cargar imagen</strong> — PNG, JPG, SVG</div>}
+                      </div>
+                    </div>
+                    <div className="fg"><label className="flabel">Descripción gráfica</label><textarea className="ftextarea" style={{minHeight:"90px"}} placeholder="Elementos visuales relevantes…"/></div>
+                  </div>
+                  <div className="slabel">Clases Niza y productos / servicios</div>
+                  <div className="fg" style={{marginBottom:"13px"}}>
+                    <div className="chips-hint">Seleccione las clases · <span onClick={()=>setNClasses([])}>Deseleccionar todas</span></div>
+                    <div className="chips">{CLASSES.map(n=><button key={n} className={`chip ${nClasses.includes(n)?"on":""}`} onClick={()=>toggleArr(nClasses,setNClasses,n)}>Clase {n}</button>)}</div>
+                  </div>
+                  <div className="fg"><label className="flabel">Lista de productos y servicios</label><textarea className="ftextarea" placeholder="ej. Clase 30: café, té, cacao…" value={nProds} onChange={e=>setNProds(e.target.value)}/></div>
+                </div>
+
+                {/* RELATIVE: Prior marks */}
+                {nGrounds==="relative"&&(
+                  <div className="card">
+                    <div className="card-hdr">
+                      <div className="card-title">Sus marcas anteriores (base de la nulidad)</div>
+                      <div className="card-sub">Datos de su marca o marcas registradas que fundamentan la acción de nulidad por causas relativas.</div>
+                    </div>
+                    {nOpps.map((op,idx)=>(
+                      <div className="opp-card" key={op.id}>
+                        <div className="opp-hdr">
+                          <div className="opp-num">Marca anterior {idx+1}</div>
+                          {nOpps.length>1&&<button className="btn-rm" onClick={()=>setNOpps(os=>os.filter(o=>o.id!==op.id))}>Eliminar</button>}
+                        </div>
+                        <div className="frow">
+                          <div className="fg"><label className="flabel">Denominación {op.logoPreview?<span style={{fontSize:"11px",fontWeight:400,color:"var(--tm)"}}>(opcional si es figurativa)</span>:<span>*</span>}</label><input className="finput" placeholder="Denominación (dejar vacío si es puramente figurativa)" value={op.name} onChange={e=>updNOpp(op.id,"name",e.target.value)}/></div>
+                          <div className="fg"><label className="flabel">N.º registro / expediente</label><input className="finput" placeholder="ej. 3456789" value={op.expediente} onChange={e=>updNOpp(op.id,"expediente",e.target.value)}/></div>
+                        </div>
+                        <div className="frow">
+                          <div className="fg"><label className="flabel">Nombre del titular (usted)</label><input className="finput" placeholder="ej. Empresa S.L." value={op.titularName||""} onChange={e=>updNOpp(op.id,"titularName",e.target.value)}/></div>
+                          <div className="fg"><label className="flabel">Territorio de protección</label><input className="finput" placeholder="ej. España, UE…" value={op.territory||""} onChange={e=>updNOpp(op.id,"territory",e.target.value)}/></div>
+                        </div>
+                        <div className="frow">
+                          <div className="fg"><label className="flabel">Fecha de registro de su marca</label><input className="finput" type="date" value={op.regDate} onChange={e=>updNOpp(op.id,"regDate",e.target.value)}/></div>
+                          <div className="fg"/>
+                        </div>
+                        <div className="frow">
+                          <div className="fg"><label className="flabel">Logo (opcional)</label>
+                            <div className="logo-up" style={{padding:"12px"}}><input type="file" accept="image/*" onChange={e=>handleNOppLogo(op.id,e)}/>
+                              {op.logoPreview?<img src={op.logoPreview} alt="" className="logo-preview"/>:<div className="logo-up-txt"><strong>Cargar logo</strong></div>}
+                            </div>
+                          </div>
+                          <div className="fg"><label className="flabel">Productos y servicios</label><textarea className="ftextarea" placeholder="Productos o servicios…" value={op.products} onChange={e=>updNOpp(op.id,"products",e.target.value)}/></div>
+                        </div>
+                        <div className="fg">
+                          <div className="chips-hint">Clases de Niza · <span onClick={()=>setNOpps(os=>os.map(o=>o.id===op.id?{...o,classes:[]}:o))}>Deseleccionar todas</span></div>
+                          <div className="chips">{CLASSES.map(n=><button key={n} className={`chip ${op.classes.includes(n)?"on":""}`} onClick={()=>togNOppCls(op.id,n)}>Clase {n}</button>)}</div>
+                        </div>
+                        {/* Trade name checkbox */}
+                        <div style={{marginTop:"14px",padding:"14px 16px",background:"var(--bg-soft)",borderRadius:"8px",border:"1px solid var(--border)"}}>
+                          <div style={{display:"flex",alignItems:"center",gap:"10px",cursor:"pointer"}} onClick={()=>updNOpp(op.id,"isTradeName",!op.isTradeName)}>
+                            <div style={{width:"18px",height:"18px",borderRadius:"4px",border:"1.5px solid var(--border-s)",background:op.isTradeName?"var(--teal)":"var(--bg)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"11px",fontWeight:700,color:"#fff",flexShrink:0}}>{op.isTradeName?"✓":""}</div>
+                            <div style={{fontSize:"13px",fontWeight:600,color:"var(--t1)"}}>Este derecho anterior es un nombre comercial</div>
+                          </div>
+                          {op.isTradeName&&(
+                            <div style={{marginTop:"8px",fontSize:"12px",color:"var(--orange)",fontWeight:500}}>El escrito se fundamentará en los artículos específicos de nulidad basada en nombre comercial. OBLIGATORIO: debe aportarse prueba del uso efectivo del nombre comercial en el tráfico económico.</div>
+                          )}
+                        </div>
+                        {/* Well-known mark */}
+                        <div style={{marginTop:"10px",padding:"14px 16px",background:"var(--bg-soft)",borderRadius:"8px",border:"1px solid var(--border)"}}>
+                          <div style={{display:"flex",alignItems:"center",gap:"10px",cursor:"pointer"}} onClick={()=>updNOpp(op.id,"wellKnown",!op.wellKnown)}>
+                            <div style={{width:"18px",height:"18px",borderRadius:"4px",border:"1.5px solid var(--border-s)",background:op.wellKnown?"var(--teal)":"var(--bg)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"11px",fontWeight:700,color:"#fff",flexShrink:0}}>{op.wellKnown?"✓":""}</div>
+                            <div style={{fontSize:"13px",fontWeight:600,color:"var(--t1)"}}>Marca notoriamente conocida / renombrada</div>
+                          </div>
+                          {op.wellKnown&&(
+                            <div style={{marginTop:"10px"}}>
+                              <div style={{fontSize:"12px",color:"var(--orange)",fontWeight:500,marginBottom:"8px"}}>OBLIGATORIO: deben aportarse pruebas de notoriedad. Sin dicha prueba, la alegación de notoriedad será desestimada.</div>
+                              <div className="fg"><label className="flabel">Territorio donde es notoria</label><input className="finput" placeholder="ej. España, UE, mundial…" value={op.wellKnownTerritory||""} onChange={e=>updNOpp(op.id,"wellKnownTerritory",e.target.value)}/></div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    <button className="btn-add" onClick={()=>setNOpps(os=>[...os,emptyOpp()])}>+ Añadir otra marca anterior</button>
+                  </div>
+                )}
+
+                {/* ABSOLUTE: Grounds selection */}
+                {nGrounds==="absolute"&&(
+                  <div className="card">
+                    <div className="card-hdr">
+                      <div className="card-title">Causas absolutas de nulidad</div>
+                      <div className="card-sub">Seleccione las prohibiciones absolutas de registro que fundamentan la acción de nulidad. Puede seleccionar varias.</div>
+                    </div>
+                    <div style={{display:"flex",flexDirection:"column",gap:"10px"}}>
+                      {ABS_GROUNDS.map(g=>(
+                        <div key={g.id} style={{padding:"14px 16px",background:nAbsoluteGrounds.includes(g.id)?"var(--orange-p)":"var(--bg-soft)",borderRadius:"8px",border:`1.5px solid ${nAbsoluteGrounds.includes(g.id)?"var(--orange)":"var(--border)"}`,cursor:"pointer",transition:"all .2s"}} onClick={()=>toggleAbsGround(g.id)}>
+                          <div style={{display:"flex",alignItems:"center",gap:"10px"}}>
+                            <div style={{width:"18px",height:"18px",borderRadius:"4px",border:"1.5px solid var(--border-s)",background:nAbsoluteGrounds.includes(g.id)?"var(--orange)":"var(--bg)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"11px",fontWeight:700,color:"#fff",flexShrink:0}}>{nAbsoluteGrounds.includes(g.id)?"✓":""}</div>
+                            <div style={{fontSize:"13px",fontWeight:600,color:nAbsoluteGrounds.includes(g.id)?"var(--orange)":"var(--t1)"}}>{g.label}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* STYLE TEMPLATE */}
+                <div className="card">
+                  <div className="card-hdr">
+                    <div className="card-title">
+                      Modelo de estilo de redacción
+                      <span style={{fontSize:"12px",fontFamily:"'Inter',sans-serif",fontWeight:400,color:"var(--tm)",marginLeft:"8px"}}>(opcional — hasta 3)</span>
+                    </div>
+                    <div className="card-sub">Si desea que el escrito imite su propio estilo, cargue hasta 3 documentos Word (.docx) o PDF de escritos jurídicos suyos anteriores.</div>
+                  </div>
+                  <div>
+                    {styleDocs.map((doc,i)=>(
+                      <div key={i} className="sz-file-row" style={{marginBottom:"6px"}}>
+                        <span className="sz-file-icon">{doc.name.endsWith(".pdf")?"📕":"📘"}</span>
+                        <span className="sz-file-name">{doc.name}</span>
+                        <button className="sz-remove" onClick={()=>removeStyleDoc(i)}>Eliminar</button>
+                      </div>
+                    ))}
+                    {styleDocs.length<3&&!styleProcessing&&(
+                      <div className={`style-zone`} style={{marginTop:styleDocs.length>0?"8px":"0"}}>
+                        <input ref={styleRef} type="file" accept=".pdf,.docx,.doc,.txt" onChange={handleStyleFile} style={{position:"absolute",inset:0,opacity:0,cursor:"pointer"}}/>
+                        <div className="sz-icon">📄</div>
+                        <div className="sz-title">{styleDocs.length===0?"Cargar modelo de estilo propio":"Agregar otro documento"}</div>
+                        {styleDocs.length===0&&<div className="sz-desc">Suba escritos jurídicos anteriores para que el documento generado adopte su forma de redactar</div>}
+                        <div className="sz-types">
+                          <span className="sz-badge sz-word">Word .docx</span>
+                          <span className="sz-badge sz-pdf">PDF</span>
+                        </div>
+                        <div style={{fontSize:"11px",color:"var(--tm)",marginTop:"8px"}}>Se recomienda usar archivos PDF hasta 3 MB cada uno</div>
+                      </div>
+                    )}
+                    {styleProcessing&&<div style={{textAlign:"center",padding:"12px",fontSize:"13px",color:"var(--tm)"}}>⏳ Procesando documento...</div>}
+                    {styleDocs.length>0&&<div style={{textAlign:"center",marginTop:"6px"}}><span className="sz-ready">✓ {styleDocs.length} documento(s) de estilo cargado(s)</span></div>}
+                  </div>
+                </div>
+                {/* REFERENCE DOCS */}
+                <div className="card">
+                  <div className="card-hdr">
+                    <div className="card-title">
+                      Documentos de referencia
+                      <span style={{fontSize:"12px",fontFamily:"'Inter',sans-serif",fontWeight:400,color:"var(--tm)",marginLeft:"8px"}}>(opcional — hasta 3)</span>
+                    </div>
+                    <div className="card-sub">Adjunte resoluciones judiciales, directrices oficiales u otros documentos legales que desee que la IA consulte y cite al redactar el escrito.</div>
+                  </div>
+                  {refDocs.map((doc,i)=>(
+                    <div key={i} style={{display:"flex",alignItems:"center",gap:"10px",padding:"10px 14px",background:"var(--bg-soft)",border:"1px solid var(--border)",borderRadius:"var(--r)",marginBottom:"8px"}}>
+                      <span style={{fontSize:"18px"}}>{doc.isPdf?"📕":"📘"}</span>
+                      <span style={{flex:1,fontSize:"13px",color:"var(--t1)",fontWeight:500}}>{doc.name}</span>
+                      <button style={{background:"none",border:"none",color:"var(--tm)",cursor:"pointer",fontSize:"16px"}} onClick={()=>removeRefDoc(i)}>✕</button>
+                    </div>
+                  ))}
+                  {refDocs.length<3&&!refProcessing&&(
+                    <div style={{border:"1px dashed var(--border-s)",borderRadius:"var(--r)",padding:"16px",textAlign:"center",cursor:"pointer",position:"relative"}}>
+                      <input ref={refDocsRef} type="file" accept=".pdf,.docx,.doc" onChange={handleRefDoc} style={{position:"absolute",inset:0,opacity:0,cursor:"pointer"}}/>
+                      <div style={{fontSize:"13px",color:"var(--t2)"}}>📎 <strong>Adjuntar documento</strong> — PDF o Word (.docx)</div>
+                    </div>
+                  )}
+                  {refProcessing&&<div style={{textAlign:"center",padding:"12px",fontSize:"13px",color:"var(--tm)"}}>⏳ Procesando documento...</div>}
+                </div>
+
+                <div className="btn-row">
+                  <button className="btn-secondary" onClick={()=>setNStep(1)}>← Volver</button>
+                  <button className="btn-primary" disabled={(!nName.trim()&&!nLogo)||!nOffice||(nGrounds==="relative"&&!nOpps.every(o=>o.name.trim()||o.logoPreview))||(nGrounds==="absolute"&&nAbsoluteGrounds.length===0)} onClick={()=>setNStep(3)}>Continuar →</button>
+                </div>
+              </>
+            )}
+
+            {/* STEP 3 — Payment */}
+            {nStep===3&&(
+              <>
+                <div className="card">
+                  <div className="card-hdr"><div className="card-title">Revisión del pedido y pago</div><div className="card-sub">Confirme los datos antes de proceder al pago.</div></div>
+                  <div className="slabel">Resumen</div>
+                  <table className="stbl" style={{marginBottom:"18px"}}>
+                    <tbody>
+                      <tr><td>Tipo de acción</td><td>{nGrounds==="relative"?"Nulidad por causas relativas (derechos anteriores)":"Nulidad por causas absolutas (invalidez)"}</td></tr>
+                      <tr><td>Marca objeto de nulidad</td><td>{nName||"(figurativa)"}</td></tr>
+                      <tr><td>Oficina</td><td>{OFFICES.find(o=>o.code===nOffice)?.label.split("—")[0].trim()}</td></tr>
+                      <tr><td>Clases</td><td>{nClasses.length?nClasses.map(c=>`Clase ${c}`).join(", "):"—"}</td></tr>
+                      {nGrounds==="relative"&&<tr><td>Marcas anteriores</td><td>{nOpps.length}</td></tr>}
+                      {nGrounds==="absolute"&&<tr><td>Causas absolutas</td><td>{nAbsoluteGrounds.length} seleccionada(s)</td></tr>}
+                      <tr><td>Modelo de estilo</td><td>{styleDocs.length>0?<span style={{color:"var(--teal)",fontWeight:600}}>✓ {styleDocs.map(d=>d.name).join(", ")}</span>:"—"}</td></tr>
+                    </tbody>
+                  </table>
+                  <div className="price-box">
+                    <div><div className="price-num"><span className="price-cur">€</span>99</div><div className="price-sub">Escrito de nulidad/invalidez · Inmediato</div></div>
+                    <div className="price-feats">
+                      <div className="price-feat"><span className="pf-ck">✓</span>Escrito completo fundamentado en derecho</div>
+                      <div className="price-feat"><span className="pf-ck">✓</span>Jurisprudencia real citada por jurisdicción</div>
+                      <div className="price-feat"><span className="pf-ck">✓</span>Adaptado al tipo de nulidad y oficina</div>
+                      {styleDocs.length>0&&<div className="price-feat"><span className="pf-ck">✓</span>Escrito en su propio estilo de redacción</div>}
+                    </div>
+                  </div>
+                  <div className="slabel">Servicio adicional</div>
+                  <div className={`upsell ${nLawyer?"sel":""}`} onClick={()=>setNLawyer(v=>!v)}>
+                    <div className="upsell-top">
+                      <div className="upsell-chk">{nLawyer?"✓":""}</div>
+                      <div><div className="upsell-title">Revisión y validación por un abogado experto en marcas</div><div className="upsell-desc">Un abogado revisará el escrito y le remitirá la versión final validada en 48 horas hábiles.</div><div className="upsell-price">+ 79 € — Total: {99 + 79} €</div></div>
+                    </div>
+                    <div className="upsell-extras">
+                      <div className="upsell-extra"><span className="ue-ck">✓</span>Revisión jurídica completa por letrado</div>
+                      <div className="upsell-extra"><span className="ue-ck">✓</span>Adaptación a la práctica real de la oficina</div>
+                      <div className="upsell-extra"><span className="ue-ck">✓</span>Entrega en 48 horas hábiles por correo</div>
+                      <div className="upsell-extra"><span className="ue-ck">✓</span>Una ronda de comentarios incluida</div>
+                    </div>
+                  </div>
+                  <div className="total-row"><span className="total-lbl">Total a pagar</span><span className="total-amt">€ {nTotal}</span></div>
+                  <div className="slabel">Correo electrónico</div>
+                  <div className="frow one" style={{marginBottom:"14px"}}><div className="fg"><label className="flabel">Email para recibir el resultado <span>*</span></label><input className="finput" type="email" placeholder="nombre@empresa.com" value={nEmail} onChange={e=>setNEmail(e.target.value)}/></div></div>
+                  <div style={{marginBottom:"14px"}}>
+                    <label className="flabel" style={{marginBottom:"6px",display:"block"}}>Logo del cliente para el documento Word (opcional)</label>
+                    <div style={{display:"flex",alignItems:"center",gap:"12px"}}>
+                      <div style={{position:"relative",display:"inline-block"}}><button className="btn-secondary" style={{fontSize:"13px",padding:"6px 14px"}} onClick={()=>clientLogoRef.current?.click()}>Subir logo</button><input ref={clientLogoRef} type="file" accept="image/*" onChange={handleClientLogo} style={{position:"absolute",inset:0,opacity:0,cursor:"pointer"}}/></div>
+                      {clientLogo && <><img src={clientLogo} alt="Logo" style={{height:"36px",objectFit:"contain",borderRadius:"4px",border:"1px solid var(--border)"}}/><button style={{background:"none",border:"none",color:"var(--t3)",cursor:"pointer",fontSize:"16px"}} onClick={()=>setClientLogo(null)}>✕</button></>}
+                    </div>
+                    <div style={{fontSize:"11px",color:"var(--t3)",marginTop:"4px"}}>El logo aparecerá en la cabecera del documento Word descargable</div>
+                  </div>
+                  <div className="billing-wrap">
+                    <div className="billing-toggle" onClick={()=>setNBilling(v=>!v)}>
+                      <div className={`toggle-box ${nBilling?"on":""}`}>{nBilling?"✓":""}</div>
+                      <div className="billing-lbl">Añadir datos de facturación</div>
+                    </div>
+                    <div className={`billing-fields ${nBilling?"open":""}`}>
+                      <BillingFields n={nb_Name} sN={setNbName} nif={nb_Nif} sNif={setNbNif} addr={nb_Addr} sAddr={setNbAddr} city={nb_City} sCity={setNbCity} cp={nb_CP} sCP={setNbCP} country={nb_Country} sCountry={setNbCountry}/>
+                    </div>
+                  </div>
+                  <div className="slabel">Método de pago</div>
+                  <PayBlock method={nPay} setMethod={setNPay} bizRef={`TRAIDEMARK-NUL-${nName.toUpperCase().replace(/\s/g,"")}`}/>
+                </div>
+                <div className="btn-row">
+                  <button className="btn-secondary" onClick={()=>setNStep(2)}>← Volver</button>
+                  <button className="btn-primary" disabled={!nEmail.trim()} onClick={async()=>{const ok=await pay(nPay,nTotal,"Escrito de nulidad/invalidez - trAIdemark",nEmail,"nullity");if(ok){setNStep(4);generateNullity();}}}>Confirmar pago — {nTotal} € →</button>
+                </div>
+              </>
+            )}
+
+            {/* STEP 4 — Result */}
+            {nStep===4&&(
+              <>
+                {nEmail&&<div className="alert-ok">✓ El escrito se enviará a <strong>{nEmail}</strong></div>}
+                <div className="res-hdr">
+                  <div className="res-title">Escrito de Nulidad {nGrounds==="relative"?"por Causas Relativas":"por Causas Absolutas"}</div>
+                  <div className="res-meta">Marca: <strong>{nName}</strong> · {OFFICES.find(o=>o.code===nOffice)?.label.split("—")[0].trim()}</div>
+                  <div className="res-badges">
+                    <span className="badge badge-opp">{nGrounds==="relative"?"⚖️ Causas relativas":"🚫 Causas absolutas"}</span>
+                    {styleDocs.length>0&&<span className="badge badge-style">✍ Estilo personalizado</span>}
+                    {nLawyer&&<span className="badge badge-rev">⚖ Revisión legal contratada</span>}
+                    {nEmail&&<span className="badge badge-email">✉ {nEmail}</span>}
+                  </div>
+                </div>
+                {styleDocs.length>0&&(
+                  <div className="notice-teal">
+                    <span className="notice-teal-icon">✍</span>
+                    <div className="notice-teal-text">Este escrito ha sido redactado imitando el estilo de {styleDocs.length} documento(s) modelo aportado(s): <strong>{styleDocs.map(d=>d.name).join(", ")}</strong>.</div>
+                  </div>
+                )}
+                {nLawyer?(
+                  <>
+                    <div style={{textAlign:"center",padding:"60px 20px"}}>
+                      <div style={{fontSize:"48px",marginBottom:"20px"}}>⚖</div>
+                      <div style={{fontSize:"22px",fontWeight:600,color:"var(--t1)",marginBottom:"12px",fontFamily:"'Playfair Display',serif"}}>Escrito bajo revisión de un experto</div>
+                      <div style={{fontSize:"15px",color:"var(--t2)",lineHeight:"1.7",maxWidth:"480px",margin:"0 auto"}}>
+                        Un abogado especialista en propiedad industrial revisará y perfeccionará el escrito de nulidad relativo a <strong style={{color:"var(--orange)"}}>{nName}</strong>.<br/><br/>
+                        En un máximo de <strong>48 horas hábiles</strong> remitiremos el documento final al correo:<br/>
+                        <strong style={{color:"var(--orange)"}}>{nEmail}</strong>
+                      </div>
+                      <div style={{marginTop:"30px",padding:"14px 24px",background:"var(--orange-p)",borderRadius:"10px",display:"inline-block",fontSize:"13px",color:"var(--t2)"}}>
+                        Referencia: Nulidad — {nName}
+                      </div>
+                    </div>
+                    <div className="btn-row">
+                      <button className="btn-primary" onClick={goHome}>Volver al inicio</button>
+                    </div>
+                  </>
+                ):(
+                  <>
+                    <div className="res-body">
+                      {loading
+                        ? <p style={{color:"var(--tm)",fontStyle:"italic"}}>Generando el escrito de nulidad…</p>
+                        : fmt(result)
+                      }
+                    </div>
+                    <div className="btn-row">
+                      <button className="btn-secondary" onClick={goHome}>Inicio</button>
+                      <button className="btn-primary" onClick={()=>{const txt=result||"";const lines=txt.split("\n");let htmlBody="";let inTable=false;for(let i=0;i<lines.length;i++){const line=lines[i];if(!line.trim()){if(inTable){htmlBody+="</table>";inTable=false;}htmlBody+="<p>&nbsp;</p>";continue;}let clean=line.replace(/^#{1,4}\s+/,"");let h=clean.replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/\*(.+?)\*/g,"<em>$1</em>");if(clean.match(/^[━═─]{3,}/)){if(inTable){htmlBody+="</table>";inTable=false;}htmlBody+=`<hr style="border:none;border-top:2px solid #2a4365;margin:12pt 0;">`;continue;}if(clean.startsWith("|")&&clean.endsWith("|")){const cells=clean.split("|").filter((_,ci)=>ci>0&&ci<clean.split("|").length-1).map(c=>c.trim());if(cells.every(c=>c.match(/^[-:]+$/))){continue;}if(!inTable){htmlBody+=`<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%;font-size:11pt;margin:6pt 0;">`;inTable=true;}const isHdr=i>0&&lines[i+1]&&lines[i+1].trim().match(/^\|[\s\-:|]+\|$/);const tag=isHdr?"th":"td";const bg=isHdr?' style="background:#e8edf3;color:#1a1a1a;font-weight:bold;text-align:left;"':' style="text-align:left;vertical-align:top;color:#333;"';htmlBody+=`<tr>${cells.map(c=>`<${tag}${bg}>${c.replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/\*(.+?)\*/g,"<em>$1</em>")}</${tag}>`).join("")}</tr>`;continue;}if(inTable){htmlBody+="</table>";inTable=false;}if(clean.startsWith(">")){htmlBody+=`<blockquote style="border-left:3px solid #999;padding:4px 12px;margin:8px 0;color:#555;font-style:italic;">${h.replace(/^>\s?/,"")}</blockquote>`;continue;}if(/^(I|II|III|IV|V|VI|VII|VIII|IX|X|XI|XII|XIII|XIV|XV)\b/.test(clean)&&/\.\s/.test(clean)){htmlBody+=`<h2 style="font-size:13pt;color:#2a4365;margin:14px 0 4px;">${h}</h2>`;continue;}if(line.match(/^#{1,4}\s/)){htmlBody+=`<h2 style="font-size:13pt;color:#2a4365;margin:14px 0 4px;">${h}</h2>`;continue;}htmlBody+=`<p>${h}</p>`;}if(inTable) htmlBody+="</table>";const today=new Date().toLocaleDateString("es-ES",{day:"2-digit",month:"long",year:"numeric"});const logoHdr=clientLogo?`<div style="margin-bottom:16px;"><img src="${clientLogo}" style="max-height:45px;max-width:150px;" alt="Logo"/></div>`:"";const coverPage=`<div style="text-align:center;margin-top:120pt;"><p style="font-size:24pt;color:#2a4365;font-weight:bold;letter-spacing:1pt;">SOLICITUD DE NULIDAD ${nGrounds==="relative"?"POR CAUSAS RELATIVAS":"POR CAUSAS ABSOLUTAS"}</p><p style="font-size:14pt;color:#555;margin-top:8pt;">${nName||"Marca figurativa"}</p><p style="font-size:10pt;color:#888;margin-top:6pt;">Generado por trAIdemark · ${today}</p><br style="mso-special-character:line-break;page-break-before:always;"></div>`;const html=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><style>@page{margin:2.5cm 2.5cm;}body{font-family:Calibri,sans-serif;font-size:11pt;margin:0;text-align:justify;mso-line-height-rule:exactly;line-height:150%;color:#333;}p{margin:0 0 6pt 0;text-align:justify;mso-line-height-rule:exactly;line-height:150%;}h2{border-bottom:1px solid #ccc;padding-bottom:4pt;}strong{color:#1a365d;}table{page-break-inside:avoid;}</style></head><body>${logoHdr}${coverPage}${htmlBody}</body></html>`;const b=new Blob([html],{type:"application/msword;charset=utf-8"});const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;a.download=`Solicitud_Nulidad_${(nName||"marca").replace(/\s/g,"_")}.doc`;a.click();URL.revokeObjectURL(u);}}>Descargar escrito</button>
+                    </div>
+                  </>
+                )}
               </>
             )}
           </main>
