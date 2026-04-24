@@ -489,6 +489,57 @@ export default function App() {
   const [nb_CP,setNbCP]=useState(""); const [nb_Country,setNbCountry]=useState("España");
   const nTotal = 99 + (nLawyer ? 79 : 0);
 
+  /* ── APPEAL (RECURSO) state ── */
+  const [aStep,  setAStep]  = useState(1);
+  const [aDecisionType, setADecisionType] = useState("");
+  const [aName,  setAName]  = useState("");
+  const [aExp,   setAExp]   = useState("");
+  const [aPartyName, setAPartyName] = useState("");
+  const [aOffice,setAOffice]= useState("");
+  const [aClasses,setAClasses]=useState([]);
+  const [aProds, setAProds] = useState("");
+  const [aLogo,  setALogo]  = useState(null);
+  const [aDecisionDate, setADecisionDate] = useState("");
+  const [aDecisionSummary, setADecisionSummary] = useState("");
+  const [aArguments, setAArguments] = useState("");
+  const [aEmail, setAEmail] = useState("");
+  const [aBilling,setABilling]=useState(false);
+  const [aLawyer,setALawyer]=useState(false);
+  const [aLang,setALang]=useState("es");
+  const [aPay,   setAPay]   = useState("card");
+  const [ab_Name,setAbName]=useState(""); const [ab_Nif,setAbNif]=useState("");
+  const [ab_Addr,setAbAddr]=useState(""); const [ab_City,setAbCity]=useState("");
+  const [ab_CP,setAbCP]=useState(""); const [ab_Country,setAbCountry]=useState("España");
+  const aTotal = 99 + (aLawyer ? 79 : 0);
+
+  const [aDecisionDoc, setADecisionDoc] = useState(null);
+  const [aDecisionDocProcessing, setADecisionDocProcessing] = useState(false);
+  const aDecisionDocRef = useRef(null);
+
+  const handleALogo = e => { const f=e.target.files[0]; if(f){const r=new FileReader();r.onload=ev=>setALogo(ev.target.result);r.readAsDataURL(f);} };
+  const handleADecisionDoc = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setADecisionDocProcessing(true);
+    const ext = file.name.split('.').pop().toLowerCase();
+    try {
+      if (ext === 'pdf') {
+        const reader = new FileReader();
+        reader.onload = ev => {
+          setADecisionDoc({ name:file.name, isPdf:true, b64:ev.target.result.split(',')[1], text:"" });
+          setADecisionDocProcessing(false);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        const ab = await file.arrayBuffer();
+        const res = await mammoth.extractRawText({ arrayBuffer: ab });
+        setADecisionDoc({ name:file.name, isPdf:false, b64:"", text:res.value||"" });
+        setADecisionDocProcessing(false);
+      }
+    } catch { setADecisionDocProcessing(false); }
+    if (aDecisionDocRef.current) aDecisionDocRef.current.value = "";
+  };
+
   const handleNLogo = e => { const f=e.target.files[0]; if(f){const r=new FileReader();r.onload=ev=>setNLogo(ev.target.result);r.readAsDataURL(f);} };
   const updNOpp = (id,k,v) => setNOpps(os=>os.map(o=>o.id===id?{...o,[k]:v}:o));
   const togNOppCls = (id,n) => setNOpps(os=>os.map(o=>o.id===id?{...o,classes:o.classes.includes(n)?o.classes.filter(x=>x!==n):[...o.classes,n]}:o));
@@ -544,6 +595,8 @@ export default function App() {
   const oJur = JURS[oOffice]||JURS.default;
   const nOfficeLabel = OFFICES.find(o=>o.code===nOffice)?.label||nOffice;
   const nJur = JURS[nOffice]||JURS.default;
+  const aOfficeLabel = OFFICES.find(o=>o.code===aOffice)?.label||aOffice;
+  const aJur = JURS[aOffice]||JURS.default;
 
   /* ── STYLE FILE (multi-doc) ── */
   const handleStyleFile = async (e) => {
@@ -1333,6 +1386,199 @@ Estructura en números romanos (I, II, III...) con subapartados. **Negrita** té
     finally { setLoading(false); }
   };
 
+  /* ── APPEAL GENERATE ── */
+  const generateAppeal = async () => {
+    setLoading(true); setLoadMsg("Generando recurso…");
+    try {
+      const s = savedFormRef.current || {};
+      const _aDecisionType = s.aDecisionType || aDecisionType;
+      const _aName = s.aName || aName;
+      const _aExp = s.aExp || aExp;
+      const _aPartyName = s.aPartyName || aPartyName;
+      const _aOffice = s.aOffice || aOffice;
+      const _aClasses = s.aClasses || aClasses;
+      const _aProds = s.aProds || aProds;
+      const _aDecisionDate = s.aDecisionDate || aDecisionDate;
+      const _aDecisionSummary = s.aDecisionSummary || aDecisionSummary;
+      const _aArguments = s.aArguments || aArguments;
+      const _aEmail = s.aEmail || aEmail;
+      const _aLawyer = s.aLawyer!==undefined ? s.aLawyer : aLawyer;
+      const _aLang = s.aLang || aLang;
+      const _aOfficeLabel = OFFICES.find(o=>o.code===_aOffice)?.label||_aOffice;
+      const _aJur = JURS[_aOffice]||JURS.default;
+      const _styleDocs = s.styleDocs || styleDocs;
+      const _refDocs = s.refDocs || refDocs;
+      const _aDecisionDoc = s.aDecisionDoc || aDecisionDoc;
+      savedFormRef.current = null;
+
+      const decisionTypeLabel = _aDecisionType==="opposition"?"resolucion de oposicion":_aDecisionType==="refusal"?"denegacion de registro":"resolucion de nulidad/caducidad";
+      const appealTypeLabel = _aOffice==="OEPM"?"RECURSO DE ALZADA":"RECURSO ANTE LA SALA DE RECURSO (BOARD OF APPEAL)";
+
+      const markData = `DATOS DE LA MARCA:
+- ${_aName ? `Denominacion: "${_aName}"` : "Marca puramente figurativa (sin denominacion)"}  N.o expediente: ${_aExp||"—"}${_aPartyName?`\n- Recurrente: ${_aPartyName}`:""}
+- Clases: ${_aClasses.length?_aClasses.map(c=>`Clase ${c}`).join(", "):"—"}
+- Productos/Servicios: ${_aProds||"—"}
+- Oficina: ${_aOfficeLabel} / Jurisdiccion: ${_aJur}`;
+
+      const decisionData = `RESOLUCION RECURRIDA:
+- Tipo de decision: ${decisionTypeLabel}
+- Fecha de la resolucion: ${_aDecisionDate||"—"}
+- Resumen de la resolucion: ${_aDecisionSummary||"(no proporcionado)"}
+
+ARGUMENTOS DEL RECURRENTE:
+${_aArguments||"(no especificados — desarrollar argumentacion basada en los datos y documentos proporcionados)"}`;
+
+      // Decision document
+      const decisionDocSection = _aDecisionDoc
+        ? (_aDecisionDoc.isPdf && _aDecisionDoc.b64
+          ? "\n\nRESOLUCION IMPUGNADA (documento adjunto): Se adjunta como PDF la resolucion que se recurre. DEBES analizar detalladamente su contenido, identificar todos los argumentos y razonamientos de la oficina, y refutarlos sistematicamente en el recurso."
+          : _aDecisionDoc.text
+          ? `\n\nRESOLUCION IMPUGNADA (transcripcion del documento):\n--- RESOLUCION ---\n${_aDecisionDoc.text.slice(0,8000)}${_aDecisionDoc.text.length>8000?"\n[...]":""}\n--- FIN RESOLUCION ---\nDEBES analizar detalladamente todos los argumentos y razonamientos de la oficina en esta resolucion y refutarlos sistematicamente.`
+          : "")
+        : "";
+      const decisionDocIsPdf = _aDecisionDoc && _aDecisionDoc.isPdf && _aDecisionDoc.b64;
+
+      // Style docs
+      const styleTextDocs = _styleDocs.filter(d => !d.isPdf && d.text);
+      const stylePdfDocs = _styleDocs.filter(d => d.isPdf && d.b64);
+      const styleSection = _styleDocs.length > 0
+        ? "\n\nIMITACION DE ESTILO: El cliente ha adjuntado " + _styleDocs.length + " documento(s) modelo. Analiza detenidamente su estructura, tono, nivel de formalidad, forma de construir los argumentos y cualquier rasgo estilistico. Reproduce ese estilo fielmente en el escrito."
+          + (styleTextDocs.length > 0 ? styleTextDocs.map((d,i)=>`\n\n--- DOCUMENTO MODELO ${i+1}: ${d.name} ---\n${d.text.slice(0,4000)}${d.text.length>4000?"\n[...]":""}\n--- FIN DOCUMENTO MODELO ${i+1} ---`).join("") : "")
+        : "";
+
+      // Reference documents
+      const refTextDocs = _refDocs.filter(d => !d.isPdf && d.text);
+      const refPdfDocs = _refDocs.filter(d => d.isPdf && d.b64);
+      const refTextSection = refTextDocs.length > 0
+        ? "\n\nDOCUMENTOS DE REFERENCIA: El cliente ha adjuntado los siguientes documentos de referencia. DEBES consultarlos, citar partes relevantes y aplicar su contenido al recurso:\n" + refTextDocs.map((d,i)=>`\n--- DOCUMENTO ${i+1}: ${d.name} ---\n${d.text.slice(0,6000)}${d.text.length>6000?"\n[...]":""}\n--- FIN DOCUMENTO ${i+1} ---`).join("\n")
+        : "";
+      const refPdfPromptNote = refPdfDocs.length > 0
+        ? `\n\nDOCUMENTOS PDF DE REFERENCIA: Se adjuntan ${refPdfDocs.length} documento(s) PDF como referencia. Analiza su contenido detenidamente y aplica la jurisprudencia, normativa o directrices que contengan al recurso.`
+        : "";
+
+      const langMap = {es:"espanol",en:"ingles (English)",fr:"frances (Francais)"};
+      const langInstr = _aLang!=="es" ? `\n\nIDIOMA: Redacta el recurso COMPLETO en ${langMap[_aLang]}. Toda la argumentacion, encabezados, citas y conclusiones deben estar en ${langMap[_aLang]}.` : "";
+
+      const legalFramework = _aOffice==="OEPM"
+        ? `MARCO JURIDICO APLICABLE (OEPM — Recurso de Alzada):
+- Ley 17/2001 de 7 de diciembre, de Marcas: arts. aplicables segun el tipo de resolucion recurrida
+- Ley 39/2015 de 1 de octubre, del Procedimiento Administrativo Comun de las Administraciones Publicas (LPAC):
+  * Art. 112: Objeto y clases de recursos (recurso de alzada)
+  * Art. 121: Recurso de alzada — plazo de interposicion (1 mes desde la notificacion)
+  * Art. 122: Resolucion del recurso de alzada
+- Real Decreto 687/2002: Reglamento de ejecucion de la Ley de Marcas
+- Directrices de Examen de la OEPM
+- El recurso se interpone ante el Director de la OEPM (organo superior jerarquico del que dicto la resolucion)`
+        : `MARCO JURIDICO APLICABLE (EUIPO — Board of Appeal):
+- Reglamento (UE) 2017/1001 sobre la Marca de la Union Europea (RMUE):
+  * Art. 66: Recursos contra resoluciones — legitimacion y plazo (2 meses)
+  * Art. 67: Plazo y forma del recurso
+  * Art. 68: Revision prejudicial (interlocutory revision)
+  * Art. 69: Examen del recurso por la Sala de Recurso
+  * Art. 70: Resoluciones de la Sala de Recurso
+  * Art. 71: Competencia de la Sala de Recurso en la resolucion del recurso
+- Reglamento Delegado (UE) 2018/625: Reglas de Procedimiento de las Salas de Recurso
+- Directrices de Examen EUIPO
+- El recurso se interpone ante la Sala de Recurso de la EUIPO (Board of Appeal)`;
+
+      const qualityBlock = `\n\nINSTRUCCIONES DE CALIDAD (OBLIGATORIAS):
+
+1. DATOS CONCRETOS: Utiliza TODOS los datos proporcionados. Cita denominaciones exactas, numeros de expediente, clases y productos en cada argumento.
+
+2. LEGISLACION — Cita articulos CONCRETOS con su contenido resumido:
+${_aOffice==="OEPM"?`   - Ley 17/2001 de Marcas: arts. aplicables segun el tipo de resolucion
+   - Ley 39/2015 (LPAC): arts. 112, 121, 122 (recurso de alzada)
+   - Directrices de Examen de la OEPM`:`   - Reglamento (UE) 2017/1001 (RMUE): arts. 66-71 (recursos)
+   - Reglamento Delegado (UE) 2018/625 (Reglas de las Salas de Recurso)
+   - Directrices de Examen EUIPO`}
+   Transcribe literalmente fragmentos clave de los articulos que apliques.
+
+3. JURISPRUDENCIA — Cita MINIMO 5-8 resoluciones/sentencias REALES:
+   ${_aDecisionType==="opposition"?`- TJUE C-251/95 Sabel/Puma (apreciacion global del riesgo de confusion)
+   - TJUE C-342/97 Lloyd Schuhfabrik (factores de similitud)
+   - TJUE C-120/04 Medion/Thomson (marcas compuestas)
+   - TJUE C-334/05 P Shaker/Limonchelo (impresion de conjunto)`
+   :_aDecisionType==="refusal"?`- TJUE C-108/97 y C-109/97 Chiemsee (signos descriptivos)
+   - TJUE C-299/99 Philips/Remington (formas funcionales)
+   - TJUE C-456/01 P y C-457/01 P Henkel (falta de distintividad)
+   - TJUE C-383/99 P Procter & Gamble/Baby-Dry (caracter descriptivo vs distintivo)`
+   :`- TJUE C-529/07 Lindt (mala fe)
+   - TJUE C-252/07 Intel (marcas de renombre)
+   - TJUE C-40/01 Ansul (uso efectivo)
+   - TJUE C-487/07 L'Oreal/Bellure (aprovechamiento indebido)`}
+   Cita las que sean relevantes y anade otras aplicables. Para cada cita, indica que principio establece y como se aplica.
+
+4. ESTRUCTURA DEL RECURSO:
+   - Encabezamiento formal (identificacion del recurrente, resolucion recurrida, fecha, organo)
+   - Antecedentes de hecho (cronologia del procedimiento y la resolucion)
+   - Fundamentos de derecho (marco legal del recurso + argumentacion sustantiva)
+   - Analisis critico de la resolucion recurrida (refutacion punto por punto)
+   - Conclusiones y solicitud (SUPLICO/SOLICITO: que se anule/revoque la resolucion)
+
+5. EXTENSION: Minimo 2500 palabras. Recurso EXHAUSTIVO y profesional.
+
+6. NO INCLUIR FIRMA ni datos de contacto ficticios. Termina con SUPLICO/SOLICITO.
+
+7. REFUTACION SISTEMATICA: Analiza cada argumento o razonamiento de la resolucion impugnada y refutalo con legislacion, jurisprudencia y argumentacion especifica. No te limites a repetir los argumentos del recurrente — desarrolla una argumentacion juridica solida e independiente.`;
+
+      const mainPrompt = `Eres un abogado senior especializado en propiedad industrial con 20 anos de experiencia ante la ${_aOffice==="OEPM"?"OEPM":"EUIPO"}. Redacta un ${appealTypeLabel} profesional y exhaustivo contra una ${decisionTypeLabel} conforme a la legislacion ${_aJur}.${decisionDocSection}${styleSection}${refTextSection}${refPdfPromptNote}${langInstr}${qualityBlock}
+
+${legalFramework}
+
+${markData}
+
+${decisionData}
+
+Estructura en numeros romanos (I, II, III...) con subapartados. **Negrita** terminos juridicos, *cursiva* denominaciones, > para citas literales de articulos o sentencias. Redacta el recurso COMPLETO, extenso y fundamentado:`;
+
+      // Collect media blocks
+      const _aLogoVal = s.aLogo || aLogo;
+      const mainLogoBlock = dataUrlToImageBlock(_aLogoVal);
+
+      let userContent;
+      const hasMediaBlocks = stylePdfDocs.length > 0 || refPdfDocs.length > 0 || mainLogoBlock || decisionDocIsPdf;
+      if (hasMediaBlocks) {
+        const blocks = [];
+        if (decisionDocIsPdf) {
+          blocks.push({ type:"text", text:"RESOLUCION IMPUGNADA — Analiza y refuta todos sus argumentos:" });
+          blocks.push({ type:"document", source:{ type:"base64", media_type:"application/pdf", data:_aDecisionDoc.b64 } });
+        }
+        stylePdfDocs.forEach(d => {
+          blocks.push({ type:"document", source:{ type:"base64", media_type:"application/pdf", data:d.b64 } });
+        });
+        refPdfDocs.forEach(d => {
+          blocks.push({ type:"document", source:{ type:"base64", media_type:"application/pdf", data:d.b64 } });
+        });
+        if (mainLogoBlock) {
+          blocks.push({ type:"text", text:`IMAGEN DEL LOGO DE LA MARCA: "${_aName}"` });
+          blocks.push(mainLogoBlock);
+        }
+        blocks.push({ type:"text", text:mainPrompt });
+        userContent = blocks;
+      } else {
+        userContent = mainPrompt;
+      }
+
+      const txt = await callClaude(
+        `Eres un abogado senior especializado en propiedad industrial con 20 anos de experiencia practica ante la OEPM y la EUIPO. Redactas recursos contra resoluciones de oficinas de marcas ${_aLang==="es"?"en espanol":_aLang==="en"?"in English":"en francais"} con maxima precision tecnica y rigor juridico. SIEMPRE citas articulos concretos de la legislacion aplicable, jurisprudencia real del TJUE y TGUE con numeros de asunto, y secciones especificas de las Directrices de Examen. Estructuras con apartados en numeros romanos y subapartados. Usas **negrita** para terminos juridicos, *cursiva* para nombres de marcas, > para citas literales. Nunca usas ### ni ##.`,
+        userContent
+      );
+      setResult(txt);
+      if(_aEmail && txt && !txt.startsWith("⚠️")){
+        const emailHtml = txt.split("\n").map(line=>{
+          if(!line.trim()) return "<br/>";
+          let h=line.replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/\*(.+?)\*/g,"<em>$1</em>");
+          if(line.startsWith(">")) return `<blockquote style="border-left:3px solid #999;padding:6px 12px;color:#555;">${h.replace(/^>\s?/,"")}</blockquote>`;
+          if(/^(I|II|III|IV|V|VI|VII|VIII|IX|X)\.\s/.test(line)) return `<h3>${h}</h3>`;
+          return `<p>${h}</p>`;
+        }).join("");
+        sendResultEmail(_aEmail, "appeal", _aName, emailHtml);
+        sendAdminNotification("appeal", _aName, _aEmail, emailHtml, !!_aLawyer);
+      }
+    } catch { setResult("⚠️ Error de conexion. Por favor, intentelo de nuevo."); }
+    finally { setLoading(false); }
+  };
+
   /* ── EMAIL ── */
   const sendResultEmail = async (email, service, markName, resultHtml) => {
     try {
@@ -1345,7 +1591,7 @@ Estructura en números romanos (I, II, III...) con subapartados. **Negrita** té
 
   const sendAdminNotification = async (service, markName, clientEmail, resultHtml, isReview=false) => {
     try {
-      const svcLabel = service==="distinctiveness"?"Distintividad":service==="viability"?"Viabilidad Registral":service==="nullity"?"Nulidad/Invalidez":"Oposicion/Defensa";
+      const svcLabel = service==="distinctiveness"?"Distintividad":service==="viability"?"Viabilidad Registral":service==="nullity"?"Nulidad/Invalidez":service==="appeal"?"Recurso":"Oposicion/Defensa";
       const headerHtml = isReview
         ? `<div style="background:#fff3e0;padding:16px;border-radius:8px;border-left:4px solid #E8845C;margin-bottom:20px;"><strong>NUEVO ENCARGO — REVISION PROFESIONAL</strong><br/>Cliente: <strong>${clientEmail}</strong><br/>Servicio: <strong>${svcLabel}</strong><br/>Marca: <strong>${markName}</strong><br/>Plazo: <strong>48 horas habiles</strong></div><hr style="margin:20px 0;"/><h3>Resultado IA generado (base para revision):</h3>`
         : `<div style="background:#e8f5e9;padding:16px;border-radius:8px;border-left:4px solid #4caf50;margin-bottom:20px;"><strong>NUEVO ENCARGO — Sin revision</strong><br/>Cliente: <strong>${clientEmail}</strong><br/>Servicio: <strong>${svcLabel}</strong><br/>Marca: <strong>${markName}</strong></div><hr style="margin:20px 0;"/><h3>Resultado IA generado:</h3>`;
@@ -1401,6 +1647,19 @@ Estructura en números romanos (I, II, III...) con subapartados. **Negrita** té
       } catch(e) {
         const minDocArray = (arr) => arr.map(d => ({ name: d.name, isPdf: d.isPdf, text: d.text, b64: "" }));
         localStorage.setItem("traidemark_form", JSON.stringify({svc,nGrounds,nName,nExp,nPartyName,nRegDate,nOffice,nClasses,nProds,nLogo,nOpps,nAbsoluteGrounds,nEmail,nLawyer,nLang,styleDocs:minDocArray(styleDocs),refDocs:minDocArray(refDocs),clientLogo:null}));
+      }
+    } else if(svc==="appeal"){
+      try {
+        const saveDocArray = (arr) => arr.map(d => ({
+          name: d.name, isPdf: d.isPdf, text: d.text,
+          b64: d.isPdf && d.b64 && d.b64.length < 1500000 ? d.b64 : ""
+        }));
+        const saveCL = clientLogo && clientLogo.length < 500000 ? clientLogo : null;
+        const saveDecDoc = aDecisionDoc ? { name:aDecisionDoc.name, isPdf:aDecisionDoc.isPdf, text:aDecisionDoc.text, b64:aDecisionDoc.isPdf&&aDecisionDoc.b64&&aDecisionDoc.b64.length<1500000?aDecisionDoc.b64:"" } : null;
+        localStorage.setItem("traidemark_form", JSON.stringify({svc,aDecisionType,aName,aExp,aPartyName,aOffice,aClasses,aProds,aLogo,aDecisionDate,aDecisionSummary,aArguments,aEmail,aLawyer,aLang,styleDocs:saveDocArray(styleDocs),refDocs:saveDocArray(refDocs),clientLogo:saveCL,aDecisionDoc:saveDecDoc}));
+      } catch(e) {
+        const minDocArray = (arr) => arr.map(d => ({ name: d.name, isPdf: d.isPdf, text: d.text, b64: "" }));
+        localStorage.setItem("traidemark_form", JSON.stringify({svc,aDecisionType,aName,aExp,aPartyName,aOffice,aClasses,aProds,aLogo,aDecisionDate,aDecisionSummary,aArguments,aEmail,aLawyer,aLang,styleDocs:minDocArray(styleDocs),refDocs:minDocArray(refDocs),clientLogo:null,aDecisionDoc:null}));
       }
     }
   };
@@ -1522,6 +1781,29 @@ Estructura en números romanos (I, II, III...) con subapartados. **Negrita** té
             setService("nullity"); setNStep(4);
             setLoading(false);
             setTimeout(()=>generateNullity(),200);
+          } else if(saved && svc==="appeal"){
+            if(saved.aDecisionType) setADecisionType(saved.aDecisionType);
+            if(saved.aName) setAName(saved.aName);
+            if(saved.aExp) setAExp(saved.aExp);
+            if(saved.aPartyName) setAPartyName(saved.aPartyName);
+            if(saved.aOffice) setAOffice(saved.aOffice);
+            if(saved.aClasses) setAClasses(saved.aClasses);
+            if(saved.aProds) setAProds(saved.aProds);
+            if(saved.aLogo) setALogo(saved.aLogo);
+            if(saved.aDecisionDate) setADecisionDate(saved.aDecisionDate);
+            if(saved.aDecisionSummary) setADecisionSummary(saved.aDecisionSummary);
+            if(saved.aArguments) setAArguments(saved.aArguments);
+            if(saved.aEmail) setAEmail(saved.aEmail);
+            if(saved.aLawyer!==undefined) setALawyer(saved.aLawyer);
+            if(saved.aLang) setALang(saved.aLang);
+            if(saved.styleDocs) setStyleDocs(saved.styleDocs);
+            if(saved.refDocs) setRefDocs(saved.refDocs);
+            if(saved.aDecisionDoc) setADecisionDoc(saved.aDecisionDoc);
+            if(saved.clientLogo) setClientLogo(saved.clientLogo);
+            savedFormRef.current = saved;
+            setService("appeal"); setAStep(3);
+            setLoading(false);
+            setTimeout(()=>generateAppeal(),200);
           } else { setLoading(false); alert("Pago confirmado. Por favor, vuelva a rellenar el formulario y seleccione Bizum o PayPal para evitar la recarga."); }
         } else { setLoading(false); alert("El pago no se ha completado. Inténtelo de nuevo."); }
       } catch(err){ setLoading(false); alert("Error verificando el pago."); }
@@ -1549,7 +1831,7 @@ Estructura en números romanos (I, II, III...) con subapartados. **Negrita** té
     });
   };
 
-  const goHome = () => { setService("home"); setResult(null); setDisData(null); setDStep(1); setOStep(1); setORole(""); setOPartyName(""); setOFilingDate(""); setOTerritory(""); setOWellKnown(false); setOWellKnownTerritory(""); setRefDocs([]); clearStyle(); setClientLogo(null); setOppDoc(null); setVStep(1); setVName(""); setVLogo(null); setVOffice(""); setVClasses([]); setVExcelData(null); setVExcelName(""); setNStep(1); setNGrounds(""); setNOpps([emptyOpp()]); setNAbsoluteGrounds([]); };
+  const goHome = () => { setService("home"); setResult(null); setDisData(null); setDStep(1); setOStep(1); setORole(""); setOPartyName(""); setOFilingDate(""); setOTerritory(""); setOWellKnown(false); setOWellKnownTerritory(""); setRefDocs([]); clearStyle(); setClientLogo(null); setOppDoc(null); setVStep(1); setVName(""); setVLogo(null); setVOffice(""); setVClasses([]); setVExcelData(null); setVExcelName(""); setNStep(1); setNGrounds(""); setNOpps([emptyOpp()]); setNAbsoluteGrounds([]); setAStep(1); setADecisionType(""); setADecisionDoc(null); setADecisionSummary(""); setAArguments(""); };
 
   /* ── BILLING COMPONENT ── */
   const BillingFields = ({n,sN,nif,sNif,addr,sAddr,city,sCity,cp,sCP,country,sCountry}) => (
@@ -1687,7 +1969,7 @@ Estructura en números romanos (I, II, III...) con subapartados. **Negrita** té
             </div>
             <div className="services">
               <div className="services-title">Qué necesitas</div>
-              <div className="services-sub">Cuatro herramientas especializadas para las necesidades más habituales en la práctica marcaria.</div>
+              <div className="services-sub">Herramientas especializadas para las necesidades de la práctica marcaria.</div>
               <div className="services-grid">
                 <div className="svc-card" onClick={()=>{if(!discAccepted){setShowDisc(true);return;}setService("distinctiveness");}}>
                   <div className="svc-icon">🔍</div>
@@ -1739,6 +2021,20 @@ Estructura en números romanos (I, II, III...) con subapartados. **Negrita** té
                       <span className="svc-tag">OEPM · EUIPO</span>
                     </div>
                     <div className="svc-desc">Solicitud de nulidad o invalidez de una marca registrada por causas relativas (derechos anteriores) o absolutas (carencia de distintividad, signos engañosos, mala fe). Redacción profesional con jurisprudencia aplicable.</div>
+                  </div>
+                  <div className="svc-footer"><span className="svc-price">Desde 99 €</span><span className="svc-arrow">→</span></div>
+                </div>
+                <div className="svc-card" onClick={()=>{if(!discAccepted){setShowDisc(true);return;}setService("appeal");}}>
+                  <div className="svc-icon">📋</div>
+                  <div>
+                    <div className="svc-title">Recurso</div>
+                    <div className="svc-tags" style={{marginTop:"8px",marginBottom:"10px"}}>
+                      <span className="svc-tag">Oposiciones</span>
+                      <span className="svc-tag">Denegaciones</span>
+                      <span className="svc-tag">Nulidad</span>
+                      <span className="svc-tag">OEPM · EUIPO</span>
+                    </div>
+                    <div className="svc-desc">Recurso contra resoluciones de la oficina de marcas: denegaciones de registro, resoluciones de oposición o decisiones de nulidad y caducidad. Argumentación jurídica sólida con jurisprudencia aplicable.</div>
                   </div>
                   <div className="svc-footer"><span className="svc-price">Desde 99 €</span><span className="svc-arrow">→</span></div>
                 </div>
@@ -2457,6 +2753,327 @@ Estructura en números romanos (I, II, III...) con subapartados. **Negrita** té
                     <div className="btn-row">
                       <button className="btn-secondary" onClick={goHome}>Inicio</button>
                       <button className="btn-primary" onClick={()=>{const txt=result||"";const lines=txt.split("\n");let htmlBody="";let inTable=false;for(let i=0;i<lines.length;i++){const line=lines[i];if(!line.trim()){if(inTable){htmlBody+="</table>";inTable=false;}htmlBody+="<p>&nbsp;</p>";continue;}let clean=line.replace(/^#{1,4}\s+/,"");let h=clean.replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/\*(.+?)\*/g,"<em>$1</em>");if(clean.match(/^[━═─]{3,}/)){if(inTable){htmlBody+="</table>";inTable=false;}htmlBody+=`<hr style="border:none;border-top:2px solid #2a4365;margin:12pt 0;">`;continue;}if(clean.startsWith("|")&&clean.endsWith("|")){const cells=clean.split("|").filter((_,ci)=>ci>0&&ci<clean.split("|").length-1).map(c=>c.trim());if(cells.every(c=>c.match(/^[-:]+$/))){continue;}if(!inTable){htmlBody+=`<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%;font-size:11pt;margin:6pt 0;">`;inTable=true;}const isHdr=i>0&&lines[i+1]&&lines[i+1].trim().match(/^\|[\s\-:|]+\|$/);const tag=isHdr?"th":"td";const bg=isHdr?' style="background:#e8edf3;color:#1a1a1a;font-weight:bold;text-align:left;"':' style="text-align:left;vertical-align:top;color:#333;"';htmlBody+=`<tr>${cells.map(c=>`<${tag}${bg}>${c.replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/\*(.+?)\*/g,"<em>$1</em>")}</${tag}>`).join("")}</tr>`;continue;}if(inTable){htmlBody+="</table>";inTable=false;}if(clean.startsWith(">")){htmlBody+=`<blockquote style="border-left:3px solid #999;padding:4px 12px;margin:8px 0;color:#555;font-style:italic;">${h.replace(/^>\s?/,"")}</blockquote>`;continue;}if(/^(I|II|III|IV|V|VI|VII|VIII|IX|X|XI|XII|XIII|XIV|XV)\b/.test(clean)&&/\.\s/.test(clean)){htmlBody+=`<h2 style="font-size:13pt;color:#2a4365;margin:14px 0 4px;">${h}</h2>`;continue;}if(line.match(/^#{1,4}\s/)){htmlBody+=`<h2 style="font-size:13pt;color:#2a4365;margin:14px 0 4px;">${h}</h2>`;continue;}htmlBody+=`<p>${h}</p>`;}if(inTable) htmlBody+="</table>";const today=new Date().toLocaleDateString("es-ES",{day:"2-digit",month:"long",year:"numeric"});const logoHdr=clientLogo?`<div style="margin-bottom:16px;"><img src="${clientLogo}" style="max-height:45px;max-width:150px;" alt="Logo"/></div>`:"";const coverPage=`<div style="text-align:center;margin-top:120pt;"><p style="font-size:24pt;color:#2a4365;font-weight:bold;letter-spacing:1pt;">SOLICITUD DE NULIDAD ${nGrounds==="relative"?"POR CAUSAS RELATIVAS":"POR CAUSAS ABSOLUTAS"}</p><p style="font-size:14pt;color:#555;margin-top:8pt;">${nName||"Marca figurativa"}</p><p style="font-size:10pt;color:#888;margin-top:6pt;">Generado por trAIdemark · ${today}</p><br style="mso-special-character:line-break;page-break-before:always;"></div>`;const html=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><style>@page{margin:2.5cm 2.5cm;}body{font-family:Calibri,sans-serif;font-size:11pt;margin:0;text-align:justify;mso-line-height-rule:exactly;line-height:150%;color:#333;}p{margin:0 0 6pt 0;text-align:justify;mso-line-height-rule:exactly;line-height:150%;}h2{border-bottom:1px solid #ccc;padding-bottom:4pt;}strong{color:#1a365d;}table{page-break-inside:avoid;}</style></head><body>${logoHdr}${coverPage}${htmlBody}</body></html>`;const b=new Blob([html],{type:"application/msword;charset=utf-8"});const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;a.download=`Solicitud_Nulidad_${(nName||"marca").replace(/\s/g,"_")}.doc`;a.click();URL.revokeObjectURL(u);}}>Descargar escrito</button>
+                    </div>
+                  </>
+                )}
+              </>
+            )}
+          </main>
+        )}
+
+        {/* ══ APPEAL (RECURSO) ══ */}
+        {service==="appeal"&&(
+          <main className="main">
+            <div className="bc"><span className="bc-lnk" onClick={goHome}>Inicio</span><span className="bc-sep">›</span><span className="bc-cur">Recurso</span></div>
+            <div className="steps">
+              {[{n:1,l:"Datos"},{n:2,l:"Pago"},{n:3,l:"Resultado"}].map((s,idx)=>(
+                <div key={s.n} className="step-item">
+                  {idx>0&&<div className={`step-conn ${aStep>idx?"done":""}`}/>}
+                  <div className="step-wrap">
+                    <div className={`step-dot ${aStep===s.n?"active":aStep>s.n?"done":""}`}>{aStep>s.n?"✓":s.n}</div>
+                    <div className={`step-lbl ${aStep===s.n?"active":aStep>s.n?"done":""}`}>{s.l}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* STEP 1 — Data entry */}
+            {aStep===1&&(
+              <>
+                <div className="card">
+                  <div className="card-hdr"><div className="card-title">Tipo de resolución recurrida</div><div className="card-sub">Seleccione el tipo de decisión de la oficina contra la que desea interponer recurso.</div></div>
+                  <div className="role-grid" style={{gridTemplateColumns:"1fr 1fr 1fr"}}>
+                    {[
+                      {id:"opposition",icon:"⚖️",name:"Resolución de oposición",desc:"La oficina resolvió un procedimiento de oposición y desea recurrir esa decisión."},
+                      {id:"refusal",icon:"🚫",name:"Denegación de registro",desc:"La oficina denegó su solicitud de registro de marca y desea recurrir la denegación."},
+                      {id:"nullity",icon:"📋",name:"Resolución de nulidad / caducidad",desc:"La oficina resolvió una acción de nulidad o caducidad y desea recurrir esa decisión."},
+                    ].map(r=>(
+                      <div key={r.id} className={`role-card ${aDecisionType===r.id?"sel":""}`} onClick={()=>setADecisionType(r.id)}>
+                        <div className="role-check"><div className="role-check-dot"/></div>
+                        <div className="role-icon">{r.icon}</div>
+                        <div className="role-name">{r.name}</div>
+                        <div className="role-desc">{r.desc}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {aDecisionType&&(
+                  <>
+                    <div className="card">
+                      <div className="card-hdr">
+                        <div className="card-title">Datos de la marca</div>
+                        <div className="card-sub">Información sobre la marca objeto del procedimiento.</div>
+                      </div>
+                      <div className="frow">
+                        <div className="fg"><label className="flabel">Denominación {aLogo?<span style={{fontSize:"11px",fontWeight:400,color:"var(--tm)"}}>(opcional si es figurativa)</span>:<span>*</span>}</label><input className="finput" placeholder="ej. NOVA CAFE (dejar vacío si es puramente figurativa)" value={aName} onChange={e=>setAName(e.target.value)}/></div>
+                        <div className="fg"><label className="flabel">N.º expediente / registro</label><input className="finput" placeholder="ej. M4123456" value={aExp} onChange={e=>setAExp(e.target.value)}/></div>
+                      </div>
+                      <div className="frow">
+                        <div className="fg"><label className="flabel">Nombre del recurrente</label><input className="finput" placeholder="ej. Empresa S.L." value={aPartyName} onChange={e=>setAPartyName(e.target.value)}/></div>
+                        <div className="fg"/>
+                      </div>
+                      <div className="frow">
+                        <div className="fg"><label className="flabel">Oficina <span>*</span></label>
+                          <select className="fselect" value={aOffice} onChange={e=>setAOffice(e.target.value)}>
+                            <option value="">— Seleccione la oficina —</option>
+                            {OFFICES.map(o=><option key={o.code} value={o.code}>{o.label}</option>)}
+                          </select>
+                        </div>
+                        <div className="fg"><label className="flabel">Idioma del recurso</label>
+                          <select className="fselect" value={aLang} onChange={e=>setALang(e.target.value)}>
+                            <option value="es">Español</option>
+                            <option value="en">English</option>
+                            <option value="fr">Français</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div className="slabel">Logo</div>
+                      <div className="frow">
+                        <div className="fg"><label className="flabel">Logotipo (opcional)</label>
+                          <div className="logo-up"><input type="file" accept="image/*" onChange={handleALogo}/>
+                            {aLogo?<img src={aLogo} alt="" className="logo-preview"/>:<div className="logo-up-txt"><strong>Cargar imagen</strong> — PNG, JPG, SVG</div>}
+                          </div>
+                        </div>
+                        <div className="fg"><label className="flabel">Descripción gráfica</label><textarea className="ftextarea" style={{minHeight:"90px"}} placeholder="Elementos visuales relevantes…"/></div>
+                      </div>
+                      <div className="slabel">Clases Niza y productos / servicios</div>
+                      <div className="fg" style={{marginBottom:"13px"}}>
+                        <div className="chips-hint">Seleccione las clases · <span onClick={()=>setAClasses([])}>Deseleccionar todas</span></div>
+                        <div className="chips">{CLASSES.map(n=><button key={n} className={`chip ${aClasses.includes(n)?"on":""}`} onClick={()=>toggleArr(aClasses,setAClasses,n)}>Clase {n}</button>)}</div>
+                      </div>
+                      <div className="fg"><label className="flabel">Lista de productos y servicios</label><textarea className="ftextarea" placeholder="ej. Clase 30: café, té, cacao…" value={aProds} onChange={e=>setAProds(e.target.value)}/></div>
+                    </div>
+
+                    <div className="card">
+                      <div className="card-hdr">
+                        <div className="card-title">Resolución recurrida</div>
+                        <div className="card-sub">Datos y contenido de la resolución de la oficina que desea recurrir.</div>
+                      </div>
+                      <div className="frow">
+                        <div className="fg"><label className="flabel">Fecha de la resolución</label><input className="finput" type="date" value={aDecisionDate} onChange={e=>setADecisionDate(e.target.value)}/></div>
+                        <div className="fg"/>
+                      </div>
+                      <div className="fg" style={{marginBottom:"14px"}}><label className="flabel">Resuma brevemente la resolución que desea recurrir <span>*</span></label><textarea className="ftextarea" style={{minHeight:"120px"}} placeholder="Describa qué decidió la oficina: ej. La OEPM estimó la oposición presentada por [oponente] al considerar que existe riesgo de confusión entre las marcas…" value={aDecisionSummary} onChange={e=>setADecisionSummary(e.target.value)}/></div>
+                      <div className="fg"><label className="flabel">Indique los principales argumentos o motivos del recurso</label><textarea className="ftextarea" style={{minHeight:"120px"}} placeholder="Indique por qué considera que la resolución es incorrecta: ej. Las marcas son suficientemente distintas fonética y visualmente, los productos pertenecen a sectores diferentes…" value={aArguments} onChange={e=>setAArguments(e.target.value)}/></div>
+                    </div>
+
+                    {/* DECISION DOCUMENT */}
+                    <div className="card">
+                      <div className="card-hdr">
+                        <div className="card-title">
+                          Documento de la resolución
+                          <span style={{fontSize:"12px",fontFamily:"'Inter',sans-serif",fontWeight:400,color:"var(--tm)",marginLeft:"8px"}}>(opcional)</span>
+                        </div>
+                        <div className="card-sub">Si dispone de la resolución en formato digital, cárguela aquí. La IA analizará y refutará directamente los argumentos de la oficina, generando un recurso altamente personalizado.</div>
+                      </div>
+                      <div>
+                        {aDecisionDoc ? (
+                          <div className="sz-file-row" style={{marginBottom:"6px"}}>
+                            <span className="sz-file-icon">{aDecisionDoc.name.endsWith(".pdf")?"📕":"📘"}</span>
+                            <span className="sz-file-name">{aDecisionDoc.name}</span>
+                            <button className="sz-remove" onClick={()=>setADecisionDoc(null)}>Eliminar</button>
+                          </div>
+                        ) : !aDecisionDocProcessing ? (
+                          <div className="style-zone">
+                            <input ref={aDecisionDocRef} type="file" accept=".pdf,.docx,.doc" onChange={handleADecisionDoc} style={{position:"absolute",inset:0,opacity:0,cursor:"pointer"}}/>
+                            <div className="sz-icon">📋</div>
+                            <div className="sz-title">Cargar resolución de la oficina</div>
+                            <div className="sz-desc">La IA refutará punto por punto los argumentos de la resolución</div>
+                            <div className="sz-types">
+                              <span className="sz-badge sz-word">Word .docx</span>
+                              <span className="sz-badge sz-pdf">PDF</span>
+                            </div>
+                          </div>
+                        ) : (
+                          <div style={{padding:"12px",color:"var(--tm)",fontSize:"13px"}}>Procesando documento…</div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* STYLE TEMPLATE */}
+                    <div className="card">
+                      <div className="card-hdr">
+                        <div className="card-title">
+                          Modelo de estilo de redacción
+                          <span style={{fontSize:"12px",fontFamily:"'Inter',sans-serif",fontWeight:400,color:"var(--tm)",marginLeft:"8px"}}>(opcional — hasta 3)</span>
+                        </div>
+                        <div className="card-sub">Si desea que el recurso imite su propio estilo, cargue hasta 3 documentos Word (.docx) o PDF de escritos jurídicos suyos anteriores.</div>
+                      </div>
+                      <div>
+                        {styleDocs.map((doc,i)=>(
+                          <div key={i} className="sz-file-row" style={{marginBottom:"6px"}}>
+                            <span className="sz-file-icon">{doc.name.endsWith(".pdf")?"📕":"📘"}</span>
+                            <span className="sz-file-name">{doc.name}</span>
+                            <button className="sz-remove" onClick={()=>removeStyleDoc(i)}>Eliminar</button>
+                          </div>
+                        ))}
+                        {styleDocs.length<3&&!styleProcessing&&(
+                          <div className={`style-zone`} style={{marginTop:styleDocs.length>0?"8px":"0"}}>
+                            <input ref={styleRef} type="file" accept=".pdf,.docx,.doc,.txt" onChange={handleStyleFile} style={{position:"absolute",inset:0,opacity:0,cursor:"pointer"}}/>
+                            <div className="sz-icon">📄</div>
+                            <div className="sz-title">{styleDocs.length===0?"Cargar modelo de estilo propio":"Agregar otro documento"}</div>
+                            {styleDocs.length===0&&<div className="sz-desc">Suba escritos jurídicos anteriores para que el documento generado adopte su forma de redactar</div>}
+                            <div className="sz-types">
+                              <span className="sz-badge sz-word">Word .docx</span>
+                              <span className="sz-badge sz-pdf">PDF</span>
+                            </div>
+                            <div style={{fontSize:"11px",color:"var(--tm)",marginTop:"8px"}}>Se recomienda usar archivos PDF hasta 3 MB cada uno</div>
+                          </div>
+                        )}
+                        {styleProcessing&&<div style={{textAlign:"center",padding:"12px",fontSize:"13px",color:"var(--tm)"}}>⏳ Procesando documento...</div>}
+                        {styleDocs.length>0&&<div style={{textAlign:"center",marginTop:"6px"}}><span className="sz-ready">✓ {styleDocs.length} documento(s) de estilo cargado(s)</span></div>}
+                      </div>
+                    </div>
+                    {/* REFERENCE DOCS */}
+                    <div className="card">
+                      <div className="card-hdr">
+                        <div className="card-title">
+                          Documentos de referencia
+                          <span style={{fontSize:"12px",fontFamily:"'Inter',sans-serif",fontWeight:400,color:"var(--tm)",marginLeft:"8px"}}>(opcional — hasta 3)</span>
+                        </div>
+                        <div className="card-sub">Adjunte resoluciones judiciales, directrices oficiales u otros documentos legales que desee que la IA consulte y cite al redactar el recurso.</div>
+                      </div>
+                      {refDocs.map((doc,i)=>(
+                        <div key={i} style={{display:"flex",alignItems:"center",gap:"10px",padding:"10px 14px",background:"var(--bg-soft)",border:"1px solid var(--border)",borderRadius:"var(--r)",marginBottom:"8px"}}>
+                          <span style={{fontSize:"18px"}}>{doc.isPdf?"📕":"📘"}</span>
+                          <span style={{flex:1,fontSize:"13px",color:"var(--t1)",fontWeight:500}}>{doc.name}</span>
+                          <button style={{background:"none",border:"none",color:"var(--tm)",cursor:"pointer",fontSize:"16px"}} onClick={()=>removeRefDoc(i)}>✕</button>
+                        </div>
+                      ))}
+                      {refDocs.length<3&&!refProcessing&&(
+                        <div style={{border:"1px dashed var(--border-s)",borderRadius:"var(--r)",padding:"16px",textAlign:"center",cursor:"pointer",position:"relative"}}>
+                          <input ref={refDocsRef} type="file" accept=".pdf,.docx,.doc" onChange={handleRefDoc} style={{position:"absolute",inset:0,opacity:0,cursor:"pointer"}}/>
+                          <div style={{fontSize:"13px",color:"var(--t2)"}}>📎 <strong>Adjuntar documento</strong> — PDF o Word (.docx)</div>
+                        </div>
+                      )}
+                      {refProcessing&&<div style={{textAlign:"center",padding:"12px",fontSize:"13px",color:"var(--tm)"}}>⏳ Procesando documento...</div>}
+                    </div>
+                  </>
+                )}
+                <div className="btn-row"><button className="btn-primary" disabled={!aDecisionType||(!aName.trim()&&!aLogo)||!aOffice||!aDecisionSummary.trim()} onClick={()=>setAStep(2)}>Continuar →</button></div>
+              </>
+            )}
+
+            {/* STEP 2 — Payment */}
+            {aStep===2&&(
+              <>
+                <div className="card">
+                  <div className="card-hdr"><div className="card-title">Revisión del pedido y pago</div><div className="card-sub">Confirme los datos antes de proceder al pago.</div></div>
+                  <div className="slabel">Resumen</div>
+                  <table className="stbl" style={{marginBottom:"18px"}}>
+                    <tbody>
+                      <tr><td>Tipo de resolución</td><td>{aDecisionType==="opposition"?"Resolución de oposición":aDecisionType==="refusal"?"Denegación de registro":"Resolución de nulidad/caducidad"}</td></tr>
+                      <tr><td>Marca</td><td>{aName||"(figurativa)"}</td></tr>
+                      <tr><td>Oficina</td><td>{OFFICES.find(o=>o.code===aOffice)?.label.split("—")[0].trim()}</td></tr>
+                      <tr><td>Clases</td><td>{aClasses.length?aClasses.map(c=>`Clase ${c}`).join(", "):"—"}</td></tr>
+                      <tr><td>Fecha resolución</td><td>{aDecisionDate||"—"}</td></tr>
+                      <tr><td>Resolución adjunta</td><td>{aDecisionDoc?<span style={{color:"var(--teal)",fontWeight:600}}>✓ {aDecisionDoc.name}</span>:"—"}</td></tr>
+                      <tr><td>Modelo de estilo</td><td>{styleDocs.length>0?<span style={{color:"var(--teal)",fontWeight:600}}>✓ {styleDocs.map(d=>d.name).join(", ")}</span>:"—"}</td></tr>
+                    </tbody>
+                  </table>
+                  <div className="price-box">
+                    <div><div className="price-num"><span className="price-cur">€</span>99</div><div className="price-sub">Recurso contra resolución · Inmediato</div></div>
+                    <div className="price-feats">
+                      <div className="price-feat"><span className="pf-ck">✓</span>Recurso completo fundamentado en derecho</div>
+                      <div className="price-feat"><span className="pf-ck">✓</span>Jurisprudencia real citada por jurisdicción</div>
+                      <div className="price-feat"><span className="pf-ck">✓</span>Refutación de la resolución impugnada</div>
+                      <div className="price-feat"><span className="pf-ck">✓</span>Adaptado a la oficina y tipo de recurso</div>
+                      {styleDocs.length>0&&<div className="price-feat"><span className="pf-ck">✓</span>Escrito en su propio estilo de redacción</div>}
+                    </div>
+                  </div>
+                  <div className="slabel">Servicio adicional</div>
+                  <div className={`upsell ${aLawyer?"sel":""}`} onClick={()=>setALawyer(v=>!v)}>
+                    <div className="upsell-top">
+                      <div className="upsell-chk">{aLawyer?"✓":""}</div>
+                      <div><div className="upsell-title">Revisión y validación por un abogado experto en marcas</div><div className="upsell-desc">Un abogado revisará el recurso y le remitirá la versión final validada en 48 horas hábiles.</div><div className="upsell-price">+ 79 € — Total: {99 + 79} €</div></div>
+                    </div>
+                    <div className="upsell-extras">
+                      <div className="upsell-extra"><span className="ue-ck">✓</span>Revisión jurídica completa por letrado</div>
+                      <div className="upsell-extra"><span className="ue-ck">✓</span>Adaptación a la práctica real de la oficina</div>
+                      <div className="upsell-extra"><span className="ue-ck">✓</span>Entrega en 48 horas hábiles por correo</div>
+                      <div className="upsell-extra"><span className="ue-ck">✓</span>Una ronda de comentarios incluida</div>
+                    </div>
+                  </div>
+                  <div className="total-row"><span className="total-lbl">Total a pagar</span><span className="total-amt">€ {aTotal}</span></div>
+                  <div className="slabel">Correo electrónico</div>
+                  <div className="frow one" style={{marginBottom:"14px"}}><div className="fg"><label className="flabel">Email para recibir el resultado <span>*</span></label><input className="finput" type="email" placeholder="nombre@empresa.com" value={aEmail} onChange={e=>setAEmail(e.target.value)}/></div></div>
+                  <div style={{marginBottom:"14px"}}>
+                    <label className="flabel" style={{marginBottom:"6px",display:"block"}}>Logo del cliente para el documento Word (opcional)</label>
+                    <div style={{display:"flex",alignItems:"center",gap:"12px"}}>
+                      <div style={{position:"relative",display:"inline-block"}}><button className="btn-secondary" style={{fontSize:"13px",padding:"6px 14px"}} onClick={()=>clientLogoRef.current?.click()}>Subir logo</button><input ref={clientLogoRef} type="file" accept="image/*" onChange={handleClientLogo} style={{position:"absolute",inset:0,opacity:0,cursor:"pointer"}}/></div>
+                      {clientLogo && <><img src={clientLogo} alt="Logo" style={{height:"36px",objectFit:"contain",borderRadius:"4px",border:"1px solid var(--border)"}}/><button style={{background:"none",border:"none",color:"var(--t3)",cursor:"pointer",fontSize:"16px"}} onClick={()=>setClientLogo(null)}>✕</button></>}
+                    </div>
+                    <div style={{fontSize:"11px",color:"var(--t3)",marginTop:"4px"}}>El logo aparecerá en la cabecera del documento Word descargable</div>
+                  </div>
+                  <div className="billing-wrap">
+                    <div className="billing-toggle" onClick={()=>setABilling(v=>!v)}>
+                      <div className={`toggle-box ${aBilling?"on":""}`}>{aBilling?"✓":""}</div>
+                      <div className="billing-lbl">Añadir datos de facturación</div>
+                    </div>
+                    <div className={`billing-fields ${aBilling?"open":""}`}>
+                      <BillingFields n={ab_Name} sN={setAbName} nif={ab_Nif} sNif={setAbNif} addr={ab_Addr} sAddr={setAbAddr} city={ab_City} sCity={setAbCity} cp={ab_CP} sCP={setAbCP} country={ab_Country} sCountry={setAbCountry}/>
+                    </div>
+                  </div>
+                  <div className="slabel">Método de pago</div>
+                  <PayBlock method={aPay} setMethod={setAPay} bizRef={`TRAIDEMARK-REC-${aName.toUpperCase().replace(/\s/g,"")}`}/>
+                </div>
+                <div className="btn-row">
+                  <button className="btn-secondary" onClick={()=>setAStep(1)}>← Volver</button>
+                  <button className="btn-primary" disabled={!aEmail.trim()} onClick={async()=>{const ok=await pay(aPay,aTotal,"Recurso contra resolución - trAIdemark",aEmail,"appeal");if(ok){setAStep(3);generateAppeal();}}}>Confirmar pago — {aTotal} € →</button>
+                </div>
+              </>
+            )}
+
+            {/* STEP 3 — Result */}
+            {aStep===3&&(
+              <>
+                {aEmail&&<div className="alert-ok">✓ El recurso se enviará a <strong>{aEmail}</strong></div>}
+                <div className="res-hdr">
+                  <div className="res-title">Recurso contra {aDecisionType==="opposition"?"resolución de oposición":aDecisionType==="refusal"?"denegación de registro":"resolución de nulidad/caducidad"}</div>
+                  <div className="res-meta">Marca: <strong>{aName}</strong> · {OFFICES.find(o=>o.code===aOffice)?.label.split("—")[0].trim()}</div>
+                  <div className="res-badges">
+                    <span className="badge badge-opp">{aDecisionType==="opposition"?"⚖️ Oposición":aDecisionType==="refusal"?"🚫 Denegación":"📋 Nulidad/Caducidad"}</span>
+                    {styleDocs.length>0&&<span className="badge badge-style">✍ Estilo personalizado</span>}
+                    {aLawyer&&<span className="badge badge-rev">⚖ Revisión legal contratada</span>}
+                    {aEmail&&<span className="badge badge-email">✉ {aEmail}</span>}
+                  </div>
+                </div>
+                {styleDocs.length>0&&(
+                  <div className="notice-teal">
+                    <span className="notice-teal-icon">✍</span>
+                    <div className="notice-teal-text">Este recurso ha sido redactado imitando el estilo de {styleDocs.length} documento(s) modelo aportado(s): <strong>{styleDocs.map(d=>d.name).join(", ")}</strong>.</div>
+                  </div>
+                )}
+                {aLawyer?(
+                  <>
+                    <div style={{textAlign:"center",padding:"60px 20px"}}>
+                      <div style={{fontSize:"48px",marginBottom:"20px"}}>⚖</div>
+                      <div style={{fontSize:"22px",fontWeight:600,color:"var(--t1)",marginBottom:"12px",fontFamily:"'Playfair Display',serif"}}>Recurso bajo revisión de un experto</div>
+                      <div style={{fontSize:"15px",color:"var(--t2)",lineHeight:"1.7",maxWidth:"480px",margin:"0 auto"}}>
+                        Un abogado especialista en propiedad industrial revisará y perfeccionará el recurso relativo a <strong style={{color:"var(--orange)"}}>{aName}</strong>.<br/><br/>
+                        En un máximo de <strong>48 horas hábiles</strong> remitiremos el documento final al correo:<br/>
+                        <strong style={{color:"var(--orange)"}}>{aEmail}</strong>
+                      </div>
+                      <div style={{marginTop:"30px",padding:"14px 24px",background:"var(--orange-p)",borderRadius:"10px",display:"inline-block",fontSize:"13px",color:"var(--t2)"}}>
+                        Referencia: Recurso — {aName}
+                      </div>
+                    </div>
+                    <div className="btn-row">
+                      <button className="btn-primary" onClick={goHome}>Volver al inicio</button>
+                    </div>
+                  </>
+                ):(
+                  <>
+                    <div className="res-body">
+                      {loading
+                        ? <p style={{color:"var(--tm)",fontStyle:"italic"}}>Generando el recurso…</p>
+                        : fmt(result)
+                      }
+                    </div>
+                    <div className="btn-row">
+                      <button className="btn-secondary" onClick={goHome}>Inicio</button>
+                      <button className="btn-primary" onClick={()=>{const txt=result||"";const lines=txt.split("\n");let htmlBody="";let inTable=false;for(let i=0;i<lines.length;i++){const line=lines[i];if(!line.trim()){if(inTable){htmlBody+="</table>";inTable=false;}htmlBody+="<p>&nbsp;</p>";continue;}let clean=line.replace(/^#{1,4}\s+/,"");let h=clean.replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/\*(.+?)\*/g,"<em>$1</em>");if(clean.match(/^[━═─]{3,}/)){if(inTable){htmlBody+="</table>";inTable=false;}htmlBody+=`<hr style="border:none;border-top:2px solid #2a4365;margin:12pt 0;">`;continue;}if(clean.startsWith("|")&&clean.endsWith("|")){const cells=clean.split("|").filter((_,ci)=>ci>0&&ci<clean.split("|").length-1).map(c=>c.trim());if(cells.every(c=>c.match(/^[-:]+$/))){continue;}if(!inTable){htmlBody+=`<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%;font-size:11pt;margin:6pt 0;">`;inTable=true;}const isHdr=i>0&&lines[i+1]&&lines[i+1].trim().match(/^\|[\s\-:|]+\|$/);const tag=isHdr?"th":"td";const bg=isHdr?' style="background:#e8edf3;color:#1a1a1a;font-weight:bold;text-align:left;"':' style="text-align:left;vertical-align:top;color:#333;"';htmlBody+=`<tr>${cells.map(c=>`<${tag}${bg}>${c.replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/\*(.+?)\*/g,"<em>$1</em>")}</${tag}>`).join("")}</tr>`;continue;}if(inTable){htmlBody+="</table>";inTable=false;}if(clean.startsWith(">")){htmlBody+=`<blockquote style="border-left:3px solid #999;padding:4px 12px;margin:8px 0;color:#555;font-style:italic;">${h.replace(/^>\s?/,"")}</blockquote>`;continue;}if(/^(I|II|III|IV|V|VI|VII|VIII|IX|X|XI|XII|XIII|XIV|XV)\b/.test(clean)&&/\.\s/.test(clean)){htmlBody+=`<h2 style="font-size:13pt;color:#2a4365;margin:14px 0 4px;">${h}</h2>`;continue;}if(line.match(/^#{1,4}\s/)){htmlBody+=`<h2 style="font-size:13pt;color:#2a4365;margin:14px 0 4px;">${h}</h2>`;continue;}htmlBody+=`<p>${h}</p>`;}if(inTable) htmlBody+="</table>";const today=new Date().toLocaleDateString("es-ES",{day:"2-digit",month:"long",year:"numeric"});const logoHdr=clientLogo?`<div style="margin-bottom:16px;"><img src="${clientLogo}" style="max-height:45px;max-width:150px;" alt="Logo"/></div>`:"";const decTypeLbl=aDecisionType==="opposition"?"RESOLUCIÓN DE OPOSICIÓN":aDecisionType==="refusal"?"DENEGACIÓN DE REGISTRO":"RESOLUCIÓN DE NULIDAD/CADUCIDAD";const coverPage=`<div style="text-align:center;margin-top:120pt;"><p style="font-size:24pt;color:#2a4365;font-weight:bold;letter-spacing:1pt;">RECURSO</p><p style="font-size:14pt;color:#555;margin-top:8pt;">contra ${decTypeLbl}</p><p style="font-size:14pt;color:#555;margin-top:4pt;">${aName||"Marca figurativa"}</p><p style="font-size:10pt;color:#888;margin-top:6pt;">Generado por trAIdemark · ${today}</p><br style="mso-special-character:line-break;page-break-before:always;"></div>`;const html=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><style>@page{margin:2.5cm 2.5cm;}body{font-family:Calibri,sans-serif;font-size:11pt;margin:0;text-align:justify;mso-line-height-rule:exactly;line-height:150%;color:#333;}p{margin:0 0 6pt 0;text-align:justify;mso-line-height-rule:exactly;line-height:150%;}h2{border-bottom:1px solid #ccc;padding-bottom:4pt;}strong{color:#1a365d;}table{page-break-inside:avoid;}</style></head><body>${logoHdr}${coverPage}${htmlBody}</body></html>`;const b=new Blob([html],{type:"application/msword;charset=utf-8"});const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;a.download=`Recurso_${(aName||"marca").replace(/\s/g,"_")}.doc`;a.click();URL.revokeObjectURL(u);}}>Descargar recurso</button>
                     </div>
                   </>
                 )}
